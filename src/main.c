@@ -25,17 +25,14 @@ static lv_color_t buf_1[LV_HOR_RES_MAX * LV_VER_RES_MAX];
 /* RTOS                                                                 */
 /************************************************************************/
 
-#define TASK_LCD_STACK_SIZE                (1024*6/sizeof(portSTACK_TYPE))
-#define TASK_LCD_STACK_PRIORITY            (tskIDLE_PRIORITY)
+#define TASK_LCD_STACK_SIZE          (1024*6/sizeof(portSTACK_TYPE))
+#define TASK_LCD_PRIORITY            (tskIDLE_PRIORITY)
 
-#define TASK_APS2_STACK_SIZE                (1024*6/sizeof(portSTACK_TYPE))
-#define TASK_APS2_STACK_PRIORITY            (tskIDLE_PRIORITY)
+#define TASK_APS2_STACK_SIZE         (1024*6/sizeof(portSTACK_TYPE))
+#define TASK_APS2_PRIORITY           (tskIDLE_PRIORITY)
 
-extern void vApplicationStackOverflowHook(xTaskHandle *pxTask,  signed char *pcTaskName);
-extern void vApplicationIdleHook(void);
-extern void vApplicationTickHook(void);
-extern void vApplicationMallocFailedHook(void);
-extern void xPortSysTickHandler(void);
+#define TASK_MAIN_STACK_SIZE         (1024*6/sizeof(portSTACK_TYPE))
+#define TASK_MAIN_PRIORITY           (tskIDLE_PRIORITY)
 
 extern void vApplicationStackOverflowHook(xTaskHandle *pxTask, signed char *pcTaskName) {
   printf("stack overflow %x %s\r\n", pxTask, (portCHAR *)pcTaskName);
@@ -46,13 +43,11 @@ extern void vApplicationIdleHook(void) { }
 
 extern void vApplicationTickHook(void) { }
 
-extern void vApplicationMallocFailedHook(void) {
-  configASSERT( ( volatile void * ) NULL );
-}
+extern void vApplicationMallocFailedHook(void) {  configASSERT( ( volatile void * ) NULL ); }
 
 
 /************************************************************************/
-/* ASP2                                                                 */
+/* ASP2 - NAO MEXER!                                                    */
 /************************************************************************/
 
 QueueHandle_t xQueueOx;
@@ -66,46 +61,12 @@ const int g_ecgSize =  sizeof(ecg)/sizeof(ecg[0]);
 /* lvgl                                                                 */
 /************************************************************************/
 
-static void event_handler(lv_obj_t * obj, lv_event_t event) {
-  if(event == LV_EVENT_CLICKED) {
-    printf("Clicked\n");
-  }
-  else if(event == LV_EVENT_VALUE_CHANGED) {
-    printf("Toggled\n");
-  }
-}
-
-int ser1_data[32];
-lv_chart_series_t * ser1;
-lv_obj_t * chart;
-
-void lv_ex_btn_1(void) {
-  
-  chart = lv_chart_create(lv_scr_act(), NULL);
-  lv_obj_set_size(chart, 300, 75);
-  lv_obj_align(chart, NULL, LV_ALIGN_IN_BOTTOM_MID, 0, 0);
-  lv_chart_set_type(chart, LV_CHART_TYPE_LINE);   /*Show lines and points too*/
-  lv_chart_set_range(chart, 0, 4095);
-  lv_chart_set_point_count(chart, 128);
-  lv_chart_set_div_line_count(chart, 0, 0);
-  //lv_chart_set_update_mode(chart, LV_CHART_UPDATE_MODE_SHIFT);
-  
-
-  lv_chart_series_t * ser1 = lv_chart_add_series(chart, LV_COLOR_RED);
-  lv_chart_set_ext_array(chart, ser1, ser1_data, 128);
-  //lv_chart_init_points(chart, ser1, 0);
-  
-  lv_chart_refresh(chart); /*Required after direct set*/
-}
 
 /************************************************************************/
 /* TASKS                                                                */
 /************************************************************************/
 
 static void task_lcd(void *pvParameters) {
-  int px, py;
-
-  lv_ex_btn_1();
 
   for (;;)  {
     lv_tick_inc(50);
@@ -116,29 +77,14 @@ static void task_lcd(void *pvParameters) {
 
 static void task_main(void *pvParameters) {
 
-  int n = 128;
-  int i = 0;
-  for(i = 0; i < 32; i++) {
-    ser1_data[i] = 0;
-  }
-
-  for (;;)  {
+   char ox;
+   for (;;)  {
     
-    char ox;
     if ( xQueueReceive( xQueueOx, &ox, 0 )) {
-      printf("%d \n", ox);
+      printf("ox: %d \n", ox);
     }
-    
-    for(i = n-1; i >0 ; i--) {
-      ser1_data[i] = ser1_data[i-1];
-    }
-    ser1_data[0] = ecg[g_ecgCnt];
-    //lv_chart_set_next(chart, ser1,  ecg[ecgCnt]);
-    
-    lv_chart_refresh(chart);
-    
+         
     vTaskDelay(25);
-    
   }
 }
 
@@ -235,15 +181,15 @@ int main(void) {
   
   xQueueOx = xQueueCreate(32, sizeof(char));
 
-  if (xTaskCreate(task_lcd, "LCD", TASK_LCD_STACK_SIZE, NULL, TASK_LCD_STACK_PRIORITY, NULL) != pdPASS) {
+  if (xTaskCreate(task_lcd, "LCD", TASK_LCD_STACK_SIZE, NULL, TASK_LCD_PRIORITY, NULL) != pdPASS) {
     printf("Failed to create lcd task\r\n");
   }
   
-  if (xTaskCreate(task_aps2, "APS2", TASK_APS2_STACK_SIZE, NULL, TASK_APS2_STACK_PRIORITY, NULL) != pdPASS) {
+  if (xTaskCreate(task_aps2, "APS2", TASK_APS2_STACK_SIZE, NULL, TASK_APS2_PRIORITY, NULL) != pdPASS) {
     printf("Failed to create APS task\r\n");
   }
   
-  if (xTaskCreate(task_main, "main", TASK_APS2_STACK_SIZE, NULL, TASK_APS2_STACK_PRIORITY, NULL) != pdPASS) {
+  if (xTaskCreate(task_main, "main", TASK_MAIN_STACK_SIZE, NULL, TASK_MAIN_PRIORITY, NULL) != pdPASS) {
     printf("Failed to create Main task\r\n");
   }
   
