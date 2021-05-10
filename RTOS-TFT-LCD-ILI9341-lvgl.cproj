@@ -815,6 +815,12 @@
     <Compile Include="src\config\conf_touch.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="src\logo.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\logo.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\touch\touch.c">
       <SubType>compile</SubType>
     </Compile>
