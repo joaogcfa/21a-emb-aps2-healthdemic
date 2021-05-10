@@ -63,7 +63,7 @@ void TC_init_modificado(Tc * TC, int ID_TC, int TC_CHANNEL, int freq){
 void vTimerEcgCallback( TimerHandle_t xTimer ) {
   // delay entre ECGs de [200, 500]
   g_ecgDelayValue = rand() % (500 + 1 - 200) + 200;
-  printf("%d \n", g_ecgDelayValue);
+ // printf("%d \n", g_ecgDelayValue);
 }
 
 void task_aps2(void *pvParameters) {
