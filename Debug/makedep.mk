@@ -6,7 +6,11 @@ src\aps2\aps2.c
 
 src\ASF\sam\drivers\dacc\dacc.c
 
+src\ASF\sam\drivers\rtc\rtc.c
+
 src\ASF\sam\drivers\tc\tc.c
+
+src\health.c
 
 src\logo.c
 

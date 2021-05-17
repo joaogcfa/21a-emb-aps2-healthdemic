@@ -11,6 +11,7 @@
 #include "aps2/aps2.h"
 #include "aps2/ecg.h"
 #include "logo.h"
+#include "health.h"
 
 /************************************************************************/
 /* STATIC                                                               */
@@ -48,6 +49,27 @@ extern void vApplicationIdleHook(void) { }
 extern void vApplicationTickHook(void) { }
 
 extern void vApplicationMallocFailedHook(void) {  configASSERT( ( volatile void * ) NULL ); }
+	
+typedef struct  {
+	uint32_t year;
+	uint32_t month;
+	uint32_t day;
+	uint32_t week;
+	uint32_t hour;
+	uint32_t minute;
+	uint32_t second;
+} calendar;
+volatile char flag_rtc = 0;
+
+SemaphoreHandle_t xSemaphore;
+
+/************************************************************************/
+/* STATIC                                                               */
+/************************************************************************/
+static  lv_obj_t * labelHour;
+static  lv_obj_t * labelMin;
+
+
 
 
 /************************************************************************/
@@ -85,6 +107,54 @@ static void power_handler(lv_obj_t * obj, lv_event_t event) {
 }
 
 /************************************************************************/
+/* RTC                                                                */
+/************************************************************************/
+
+void RTC_Handler(void)
+{
+	uint32_t ul_status = rtc_get_status(RTC);
+
+	/* seccond tick	*/
+	if ((ul_status & RTC_SR_SEC) == RTC_SR_SEC) {
+		BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+		xSemaphoreGiveFromISR(xSemaphore, &xHigherPriorityTaskWoken);
+	}
+	
+	/* Time or date alarm */
+	if ((ul_status & RTC_SR_ALARM) == RTC_SR_ALARM) {
+		//flag_rtc = 1;
+	}
+	
+	rtc_clear_status(RTC, RTC_SCCR_SECCLR);
+	rtc_clear_status(RTC, RTC_SCCR_ALRCLR);
+	rtc_clear_status(RTC, RTC_SCCR_ACKCLR);
+	rtc_clear_status(RTC, RTC_SCCR_TIMCLR);
+	rtc_clear_status(RTC, RTC_SCCR_CALCLR);
+	rtc_clear_status(RTC, RTC_SCCR_TDERRCLR);
+}
+
+void RTC_init(Rtc *rtc, uint32_t id_rtc, calendar t, uint32_t irq_type){
+	/* Configura o PMC */
+	pmc_enable_periph_clk(ID_RTC);
+
+	/* Default RTC configuration, 24-hour mode */
+	rtc_set_hour_mode(rtc, 0);
+
+	/* Configura data e hora manualmente */
+	rtc_set_date(rtc, t.year, t.month, t.day, t.week);
+	rtc_set_time(rtc, t.hour, t.minute, t.second);
+
+	/* Configure RTC interrupts */
+	NVIC_DisableIRQ(id_rtc);
+	NVIC_ClearPendingIRQ(id_rtc);
+	NVIC_SetPriority(id_rtc, 4);
+	NVIC_EnableIRQ(id_rtc);
+
+	/* Ativa interrupcao via alarme */
+	rtc_enable_interrupt(rtc,  irq_type);
+}
+
+/************************************************************************/
 /* lvgl                                                                 */
 /************************************************************************/
 
@@ -93,30 +163,34 @@ lv_oxi(void) {
 	
 	lv_obj_t * img1 = lv_img_create(lv_scr_act(), NULL);
 	lv_img_set_src(img1, &logo);
-	lv_obj_align(img1, NULL, LV_ALIGN_IN_TOP_LEFT, 0, 20);
+	lv_obj_align(img1, NULL, LV_ALIGN_IN_TOP_LEFT, 5, 30);
+	
+	lv_obj_t * health_txt = lv_img_create(lv_scr_act(), NULL);
+	lv_img_set_src(health_txt, &health);
+	lv_obj_align(health_txt, NULL, LV_ALIGN_IN_TOP_LEFT, 50, 40);
 	
 	
 	// cria botao de tamanho 60x60 redondo do MENU
 	lv_obj_t * btnMenu = lv_btn_create(lv_scr_act(), NULL);
 	lv_obj_set_event_cb(btnMenu, menu_handler);
-	lv_obj_set_width(btnMenu, 60);  lv_obj_set_height(btnMenu, 60);
+	lv_obj_set_width(btnMenu, 100);  lv_obj_set_height(btnMenu, 40);
 
 	// alinha no canto esquerdo e desloca um pouco para cima e para direita
-	lv_obj_align(btnMenu, NULL, LV_ALIGN_IN_BOTTOM_RIGHT, 0, 0);
-
+	lv_obj_align(btnMenu, NULL, LV_ALIGN_IN_BOTTOM_RIGHT, -10, -10);
+	
 	// altera a cor de fundo, borda do botão criado para PRETO
-	lv_obj_set_style_local_bg_color(btnMenu, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_BLUE );
+	lv_obj_set_style_local_bg_color(btnMenu, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_WHITE );
 	lv_obj_set_style_local_border_color(btnMenu, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_BLUE );
-	lv_obj_set_style_local_border_width(btnMenu, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, 0);
+	lv_obj_set_style_local_border_width(btnMenu, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, 2);
 	
 	labelMenu = lv_label_create(btnMenu, NULL);
 	lv_label_set_recolor(labelMenu, true);
-	lv_label_set_text(labelMenu, "#ffffff   MARCO  #");
+	lv_label_set_text(labelMenu, "#00000   BEGIN  #");
 	
 	// cria botao de tamanho 60x60 redondo do POWER
 	lv_obj_t * btnPower = lv_btn_create(lv_scr_act(), NULL);
 	lv_obj_set_event_cb(btnPower, power_handler);
-	lv_obj_set_width(btnPower, 20);  lv_obj_set_height(btnPower, 20);
+	lv_obj_set_width(btnPower, 30);  lv_obj_set_height(btnPower, 30);
 
 	// alinha no canto esquerdo e desloca um pouco para cima e para direita
 	lv_obj_align(btnPower, NULL, LV_ALIGN_IN_TOP_LEFT, 10, 10);
@@ -129,6 +203,25 @@ lv_oxi(void) {
 	labelPower = lv_label_create(btnPower, NULL);
 	lv_label_set_recolor(labelPower, true);
 	lv_label_set_text(labelPower, "#00000 [  " LV_SYMBOL_POWER "  |#");
+	
+	
+	labelHour = lv_label_create(lv_scr_act(), NULL);
+	lv_obj_align(labelHour, NULL, LV_ALIGN_IN_TOP_MID, -13 , 10);
+	//lv_obj_set_style_local_text_font(labelHour, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &dseg30);
+	lv_obj_set_style_local_text_color(labelHour, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_BLACK);
+	//lv_label_set_text_fmt(labelHour, "%02d", 17);
+	
+	labelMin = lv_label_create(lv_scr_act(), NULL);
+	lv_obj_align(labelMin, NULL, LV_ALIGN_IN_TOP_MID, 6 , 10);
+	//lv_obj_set_style_local_text_font(labelMin, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &dseg30);
+	lv_obj_set_style_local_text_color(labelMin, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_BLACK);
+
+	lv_obj_t * labelBat;
+	labelBat = lv_label_create(lv_scr_act(), NULL);
+	lv_obj_align(labelBat, NULL, LV_ALIGN_IN_TOP_RIGHT, -5 , 5);
+	//lv_obj_set_style_local_text_font(labelHour, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &dseg30);
+	lv_obj_set_style_local_text_color(labelBat, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_BLACK);
+	lv_label_set_text_fmt(labelBat, "%d %", 17);// nao sei pq o % nao aparece
 }
 
 /************************************************************************/
@@ -151,10 +244,42 @@ static void task_main(void *pvParameters) {
 	for (;;)  {
 		
 		if ( xQueueReceive( xQueueOx, &ox, 0 )) {
-			printf("ox: %d \n", ox);
+			//printf("ox: %d \n", ox);
 		}
 		
 		vTaskDelay(25);
+	}
+}
+
+static void task_clock(void *pvParameters) {
+	
+	
+	calendar rtc_initial = {2021, 5, 7, 18, 10, 59 ,1};
+	RTC_init(RTC, ID_RTC, rtc_initial, RTC_IER_SECEN);
+	
+	int flag_pisca = 0;
+	
+	uint32_t hour;
+	uint32_t minute;
+	uint32_t second;
+	
+	UNUSED(pvParameters);
+
+	while(1){
+		
+		if( xSemaphoreTake(xSemaphore, ( TickType_t ) 10 / portTICK_PERIOD_MS) == pdTRUE ){
+			rtc_get_time(RTC, &hour, &minute, &second);
+			if(flag_pisca == 0){
+				lv_label_set_text_fmt(labelHour, "%02d:", hour);
+				lv_label_set_text_fmt(labelMin, "%02d", minute);
+				flag_pisca = 1;
+			}
+			else if(flag_pisca == 1){
+				lv_label_set_text_fmt(labelHour, "%02d", hour);
+				lv_label_set_text_fmt(labelMin, "%02d", minute);
+				flag_pisca = 0;
+			}
+		}
 	}
 }
 
@@ -250,9 +375,14 @@ int main(void) {
 	lv_indev_t * my_indev = lv_indev_drv_register(&indev_drv);
 	
 	xQueueOx = xQueueCreate(32, sizeof(char));
+	xSemaphore = xSemaphoreCreateBinary();
 
 	if (xTaskCreate(task_lcd, "LCD", TASK_LCD_STACK_SIZE, NULL, TASK_LCD_PRIORITY, NULL) != pdPASS) {
 		printf("Failed to create lcd task\r\n");
+	}
+	
+	if (xTaskCreate(task_clock, "RTC", TASK_LCD_STACK_SIZE, NULL, TASK_LCD_PRIORITY, NULL) != pdPASS) {
+		printf("Failed to create RTC task\r\n");
 	}
 	
 	if (xTaskCreate(task_aps2, "APS2", TASK_APS2_STACK_SIZE, NULL, TASK_APS2_PRIORITY, NULL) != pdPASS) {
