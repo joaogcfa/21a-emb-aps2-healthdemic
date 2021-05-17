@@ -22,6 +22,9 @@ static lv_disp_buf_t disp_buf;
 /*Static or global buffer(s). The second buffer is optional*/
 static lv_color_t buf_1[LV_HOR_RES_MAX * LV_VER_RES_MAX];
 
+static  lv_obj_t * labelMenu;
+static  lv_obj_t * labelPower;
+
 /************************************************************************/
 /* RTOS                                                                 */
 /************************************************************************/
@@ -58,6 +61,29 @@ volatile int g_ecgDelayCnt = 0;
 volatile int g_ecgDelayValue = 0;
 const int g_ecgSize =  sizeof(ecg)/sizeof(ecg[0]);
 
+
+/************************************************************************/
+/* handler                                                               */
+/************************************************************************/
+
+static void menu_handler(lv_obj_t * obj, lv_event_t event) {
+	if(event == LV_EVENT_CLICKED) {
+		printf("Clicked\n");
+	}
+	else if(event == LV_EVENT_VALUE_CHANGED) {
+		printf("Toggled\n");
+	}
+}
+
+static void power_handler(lv_obj_t * obj, lv_event_t event) {
+	if(event == LV_EVENT_CLICKED) {
+		printf("Clicked\n");
+	}
+	else if(event == LV_EVENT_VALUE_CHANGED) {
+		printf("Toggled\n");
+	}
+}
+
 /************************************************************************/
 /* lvgl                                                                 */
 /************************************************************************/
@@ -68,7 +94,41 @@ lv_oxi(void) {
 	lv_obj_t * img1 = lv_img_create(lv_scr_act(), NULL);
 	lv_img_set_src(img1, &logo);
 	lv_obj_align(img1, NULL, LV_ALIGN_IN_TOP_LEFT, 0, 20);
+	
+	
+	// cria botao de tamanho 60x60 redondo do MENU
+	lv_obj_t * btnMenu = lv_btn_create(lv_scr_act(), NULL);
+	lv_obj_set_event_cb(btnMenu, menu_handler);
+	lv_obj_set_width(btnMenu, 60);  lv_obj_set_height(btnMenu, 60);
 
+	// alinha no canto esquerdo e desloca um pouco para cima e para direita
+	lv_obj_align(btnMenu, NULL, LV_ALIGN_IN_BOTTOM_RIGHT, 0, 0);
+
+	// altera a cor de fundo, borda do botão criado para PRETO
+	lv_obj_set_style_local_bg_color(btnMenu, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_BLUE );
+	lv_obj_set_style_local_border_color(btnMenu, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_BLUE );
+	lv_obj_set_style_local_border_width(btnMenu, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, 0);
+	
+	labelMenu = lv_label_create(btnMenu, NULL);
+	lv_label_set_recolor(labelMenu, true);
+	lv_label_set_text(labelMenu, "#ffffff   MARCO  #");
+	
+	// cria botao de tamanho 60x60 redondo do POWER
+	lv_obj_t * btnPower = lv_btn_create(lv_scr_act(), NULL);
+	lv_obj_set_event_cb(btnPower, power_handler);
+	lv_obj_set_width(btnPower, 20);  lv_obj_set_height(btnPower, 20);
+
+	// alinha no canto esquerdo e desloca um pouco para cima e para direita
+	lv_obj_align(btnPower, NULL, LV_ALIGN_IN_TOP_LEFT, 10, 10);
+
+	// altera a cor de fundo, borda do botão criado para PRETO
+	lv_obj_set_style_local_bg_color(btnPower, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_WHITE );
+	lv_obj_set_style_local_border_color(btnPower, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_WHITE );
+	lv_obj_set_style_local_border_width(btnPower, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, 0);
+	 
+	labelPower = lv_label_create(btnPower, NULL);
+	lv_label_set_recolor(labelPower, true);
+	lv_label_set_text(labelPower, "#00000 [  " LV_SYMBOL_POWER "  |#");
 }
 
 /************************************************************************/

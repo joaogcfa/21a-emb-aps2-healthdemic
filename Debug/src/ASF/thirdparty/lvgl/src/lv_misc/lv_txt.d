@@ -41,26 +41,26 @@ src/ASF/thirdparty/lvgl/src/lv_misc/lv_txt.d \
  ../src/ASF/thirdparty/lvgl/src/lv_misc/../lv_draw/lv_draw.h \
  ../src/ASF/thirdparty/lvgl/src/lv_misc/../lv_draw/../lv_conf_internal.h \
  ../src/ASF/thirdparty/lvgl/src/lv_misc/../lv_draw/../lv_core/lv_style.h \
- c:\21a-emb-aps2-healthdemic\src\asf\thirdparty\lvgl\src\lv_font\lv_font.h \
- c:\21a-emb-aps2-healthdemic\src\asf\thirdparty\lvgl\src\lv_misc\lv_color.h \
- c:\21a-emb-aps2-healthdemic\src\asf\thirdparty\lvgl\src\lv_conf_internal.h \
- c:\21a-emb-aps2-healthdemic\src\asf\thirdparty\lvgl\src\lv_misc\lv_math.h \
- c:\21a-emb-aps2-healthdemic\src\asf\thirdparty\lvgl\src\lv_misc\lv_area.h \
- c:\21a-emb-aps2-healthdemic\src\asf\thirdparty\lvgl\src\lv_misc\lv_anim.h \
- c:\21a-emb-aps2-healthdemic\src\asf\thirdparty\lvgl\src\lv_misc\lv_mem.h \
- c:\21a-emb-aps2-healthdemic\src\asf\thirdparty\lvgl\src\lv_misc\lv_types.h \
- c:\21a-emb-aps2-healthdemic\src\asf\thirdparty\lvgl\src\lv_misc\lv_debug.h \
- c:\21a-emb-aps2-healthdemic\src\asf\thirdparty\lvgl\src\lv_draw\lv_draw_blend.h \
- c:\21a-emb-aps2-healthdemic\src\asf\thirdparty\lvgl\src\lv_misc\lv_color.h \
- c:\21a-emb-aps2-healthdemic\src\asf\thirdparty\lvgl\src\lv_misc\lv_area.h \
- c:\21a-emb-aps2-healthdemic\src\asf\thirdparty\lvgl\src\lv_draw\lv_draw_mask.h \
+ ../src/ASF/thirdparty/lvgl/src/lv_misc/../lv_draw/../lv_core/../lv_font/lv_font.h \
+ ../src/ASF/thirdparty/lvgl/src/lv_misc/../lv_draw/../lv_core/../lv_misc/lv_color.h \
+ ../src/ASF/thirdparty/lvgl/src/lv_misc/../lv_draw/../lv_core/../lv_misc/../lv_conf_internal.h \
+ ../src/ASF/thirdparty/lvgl/src/lv_misc/../lv_draw/../lv_core/../lv_misc/lv_math.h \
+ ../src/ASF/thirdparty/lvgl/src/lv_misc/../lv_draw/../lv_core/../lv_misc/lv_area.h \
+ ../src/ASF/thirdparty/lvgl/src/lv_misc/../lv_draw/../lv_core/../lv_misc/lv_anim.h \
+ ../src/ASF/thirdparty/lvgl/src/lv_misc/../lv_draw/../lv_core/../lv_misc/lv_mem.h \
+ ../src/ASF/thirdparty/lvgl/src/lv_misc/../lv_draw/../lv_core/../lv_misc/lv_types.h \
+ ../src/ASF/thirdparty/lvgl/src/lv_misc/../lv_draw/../lv_core/../lv_misc/lv_debug.h \
+ ../src/ASF/thirdparty/lvgl/src/lv_misc/../lv_draw/../lv_core/../lv_draw/lv_draw_blend.h \
+ ../src/ASF/thirdparty/lvgl/src/lv_misc/../lv_draw/../lv_core/../lv_draw/../lv_misc/lv_color.h \
+ ../src/ASF/thirdparty/lvgl/src/lv_misc/../lv_draw/../lv_core/../lv_draw/../lv_misc/lv_area.h \
+ ../src/ASF/thirdparty/lvgl/src/lv_misc/../lv_draw/../lv_core/../lv_draw/lv_draw_mask.h \
  ../src/ASF/thirdparty/lvgl/src/lv_misc/../lv_draw/../lv_misc/lv_txt.h \
  ../src/ASF/thirdparty/lvgl/src/lv_misc/../lv_draw/lv_img_decoder.h \
  ../src/ASF/thirdparty/lvgl/src/lv_misc/../lv_draw/lv_img_buf.h \
  ../src/ASF/thirdparty/lvgl/src/lv_misc/../lv_draw/../lv_misc/lv_color.h \
  ../src/ASF/thirdparty/lvgl/src/lv_misc/../lv_draw/../lv_misc/lv_area.h \
  ../src/ASF/thirdparty/lvgl/src/lv_misc/../lv_draw/../lv_misc/lv_fs.h \
- c:\21a-emb-aps2-healthdemic\src\asf\thirdparty\lvgl\src\lv_conf_internal.h \
+ ../src/ASF/thirdparty/lvgl/src/lv_misc/../lv_draw/../lv_misc/../lv_conf_internal.h \
  ../src/ASF/thirdparty/lvgl/src/lv_misc/../lv_draw/../lv_misc/lv_mem.h \
  ../src/ASF/thirdparty/lvgl/src/lv_misc/../lv_draw/../lv_misc/lv_types.h \
  ../src/ASF/thirdparty/lvgl/src/lv_misc/../lv_draw/lv_draw_rect.h \
@@ -155,31 +155,31 @@ c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-no
 
 ../src/ASF/thirdparty/lvgl/src/lv_misc/../lv_draw/../lv_core/lv_style.h:
 
-c:\21a-emb-aps2-healthdemic\src\asf\thirdparty\lvgl\src\lv_font\lv_font.h:
+../src/ASF/thirdparty/lvgl/src/lv_misc/../lv_draw/../lv_core/../lv_font/lv_font.h:
 
-c:\21a-emb-aps2-healthdemic\src\asf\thirdparty\lvgl\src\lv_misc\lv_color.h:
+../src/ASF/thirdparty/lvgl/src/lv_misc/../lv_draw/../lv_core/../lv_misc/lv_color.h:
 
-c:\21a-emb-aps2-healthdemic\src\asf\thirdparty\lvgl\src\lv_conf_internal.h:
+../src/ASF/thirdparty/lvgl/src/lv_misc/../lv_draw/../lv_core/../lv_misc/../lv_conf_internal.h:
 
-c:\21a-emb-aps2-healthdemic\src\asf\thirdparty\lvgl\src\lv_misc\lv_math.h:
+../src/ASF/thirdparty/lvgl/src/lv_misc/../lv_draw/../lv_core/../lv_misc/lv_math.h:
 
-c:\21a-emb-aps2-healthdemic\src\asf\thirdparty\lvgl\src\lv_misc\lv_area.h:
+../src/ASF/thirdparty/lvgl/src/lv_misc/../lv_draw/../lv_core/../lv_misc/lv_area.h:
 
-c:\21a-emb-aps2-healthdemic\src\asf\thirdparty\lvgl\src\lv_misc\lv_anim.h:
+../src/ASF/thirdparty/lvgl/src/lv_misc/../lv_draw/../lv_core/../lv_misc/lv_anim.h:
 
-c:\21a-emb-aps2-healthdemic\src\asf\thirdparty\lvgl\src\lv_misc\lv_mem.h:
+../src/ASF/thirdparty/lvgl/src/lv_misc/../lv_draw/../lv_core/../lv_misc/lv_mem.h:
 
-c:\21a-emb-aps2-healthdemic\src\asf\thirdparty\lvgl\src\lv_misc\lv_types.h:
+../src/ASF/thirdparty/lvgl/src/lv_misc/../lv_draw/../lv_core/../lv_misc/lv_types.h:
 
-c:\21a-emb-aps2-healthdemic\src\asf\thirdparty\lvgl\src\lv_misc\lv_debug.h:
+../src/ASF/thirdparty/lvgl/src/lv_misc/../lv_draw/../lv_core/../lv_misc/lv_debug.h:
 
-c:\21a-emb-aps2-healthdemic\src\asf\thirdparty\lvgl\src\lv_draw\lv_draw_blend.h:
+../src/ASF/thirdparty/lvgl/src/lv_misc/../lv_draw/../lv_core/../lv_draw/lv_draw_blend.h:
 
-c:\21a-emb-aps2-healthdemic\src\asf\thirdparty\lvgl\src\lv_misc\lv_color.h:
+../src/ASF/thirdparty/lvgl/src/lv_misc/../lv_draw/../lv_core/../lv_draw/../lv_misc/lv_color.h:
 
-c:\21a-emb-aps2-healthdemic\src\asf\thirdparty\lvgl\src\lv_misc\lv_area.h:
+../src/ASF/thirdparty/lvgl/src/lv_misc/../lv_draw/../lv_core/../lv_draw/../lv_misc/lv_area.h:
 
-c:\21a-emb-aps2-healthdemic\src\asf\thirdparty\lvgl\src\lv_draw\lv_draw_mask.h:
+../src/ASF/thirdparty/lvgl/src/lv_misc/../lv_draw/../lv_core/../lv_draw/lv_draw_mask.h:
 
 ../src/ASF/thirdparty/lvgl/src/lv_misc/../lv_draw/../lv_misc/lv_txt.h:
 
@@ -193,7 +193,7 @@ c:\21a-emb-aps2-healthdemic\src\asf\thirdparty\lvgl\src\lv_draw\lv_draw_mask.h:
 
 ../src/ASF/thirdparty/lvgl/src/lv_misc/../lv_draw/../lv_misc/lv_fs.h:
 
-c:\21a-emb-aps2-healthdemic\src\asf\thirdparty\lvgl\src\lv_conf_internal.h:
+../src/ASF/thirdparty/lvgl/src/lv_misc/../lv_draw/../lv_misc/../lv_conf_internal.h:
 
 ../src/ASF/thirdparty/lvgl/src/lv_misc/../lv_draw/../lv_misc/lv_mem.h:
 
