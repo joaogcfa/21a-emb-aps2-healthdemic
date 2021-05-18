@@ -40,19 +40,19 @@ src/ASF/thirdparty/lvgl/src/lv_draw/lv_img_buf.d \
  ../src/ASF/thirdparty/lvgl/src/lv_draw/../lv_misc/lv_types.h \
  ../src/ASF/thirdparty/lvgl/src/lv_draw/../lv_core/lv_style.h \
  ../src/ASF/thirdparty/lvgl/src/lv_draw/../lv_core/../lv_font/lv_font.h \
- c:\21a-emb-aps2-healthdemic\src\asf\thirdparty\lvgl\src\lv_conf_internal.h \
+ ../src/ASF/thirdparty/lvgl/src/lv_draw/../lv_core/../lv_font/../lv_conf_internal.h \
  ../src/ASF/thirdparty/lvgl/src/lv_draw/../lv_core/../lv_font/lv_symbol_def.h \
- c:\21a-emb-aps2-healthdemic\src\asf\thirdparty\lvgl\src\lv_misc\lv_area.h \
+ ../src/ASF/thirdparty/lvgl/src/lv_draw/../lv_core/../lv_font/../lv_misc/lv_area.h \
  ../src/ASF/thirdparty/lvgl/src/lv_draw/../lv_core/../lv_misc/lv_color.h \
  ../src/ASF/thirdparty/lvgl/src/lv_draw/../lv_core/../lv_misc/lv_area.h \
  ../src/ASF/thirdparty/lvgl/src/lv_draw/../lv_core/../lv_misc/lv_anim.h \
- c:\21a-emb-aps2-healthdemic\src\asf\thirdparty\lvgl\src\lv_conf_internal.h \
+ ../src/ASF/thirdparty/lvgl/src/lv_draw/../lv_core/../lv_misc/../lv_conf_internal.h \
  ../src/ASF/thirdparty/lvgl/src/lv_draw/../lv_core/../lv_misc/lv_mem.h \
  ../src/ASF/thirdparty/lvgl/src/lv_draw/../lv_core/../lv_misc/lv_types.h \
  ../src/ASF/thirdparty/lvgl/src/lv_draw/../lv_core/../lv_misc/lv_debug.h \
  ../src/ASF/thirdparty/lvgl/src/lv_draw/../lv_core/../lv_draw/lv_draw_blend.h \
- c:\21a-emb-aps2-healthdemic\src\asf\thirdparty\lvgl\src\lv_misc\lv_color.h \
- c:\21a-emb-aps2-healthdemic\src\asf\thirdparty\lvgl\src\lv_misc\lv_area.h \
+ ../src/ASF/thirdparty/lvgl/src/lv_draw/../lv_core/../lv_draw/../lv_misc/lv_color.h \
+ ../src/ASF/thirdparty/lvgl/src/lv_draw/../lv_core/../lv_draw/../lv_misc/lv_area.h \
  ../src/ASF/thirdparty/lvgl/src/lv_draw/../lv_core/../lv_draw/lv_draw_mask.h \
  ../src/ASF/thirdparty/lvgl/src/lv_draw/../lv_misc/lv_math.h \
  ../src/ASF/thirdparty/lvgl/src/lv_draw/../lv_misc/lv_log.h \
@@ -136,11 +136,11 @@ c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-no
 
 ../src/ASF/thirdparty/lvgl/src/lv_draw/../lv_core/../lv_font/lv_font.h:
 
-c:\21a-emb-aps2-healthdemic\src\asf\thirdparty\lvgl\src\lv_conf_internal.h:
+../src/ASF/thirdparty/lvgl/src/lv_draw/../lv_core/../lv_font/../lv_conf_internal.h:
 
 ../src/ASF/thirdparty/lvgl/src/lv_draw/../lv_core/../lv_font/lv_symbol_def.h:
 
-c:\21a-emb-aps2-healthdemic\src\asf\thirdparty\lvgl\src\lv_misc\lv_area.h:
+../src/ASF/thirdparty/lvgl/src/lv_draw/../lv_core/../lv_font/../lv_misc/lv_area.h:
 
 ../src/ASF/thirdparty/lvgl/src/lv_draw/../lv_core/../lv_misc/lv_color.h:
 
@@ -148,7 +148,7 @@ c:\21a-emb-aps2-healthdemic\src\asf\thirdparty\lvgl\src\lv_misc\lv_area.h:
 
 ../src/ASF/thirdparty/lvgl/src/lv_draw/../lv_core/../lv_misc/lv_anim.h:
 
-c:\21a-emb-aps2-healthdemic\src\asf\thirdparty\lvgl\src\lv_conf_internal.h:
+../src/ASF/thirdparty/lvgl/src/lv_draw/../lv_core/../lv_misc/../lv_conf_internal.h:
 
 ../src/ASF/thirdparty/lvgl/src/lv_draw/../lv_core/../lv_misc/lv_mem.h:
 
@@ -158,9 +158,9 @@ c:\21a-emb-aps2-healthdemic\src\asf\thirdparty\lvgl\src\lv_conf_internal.h:
 
 ../src/ASF/thirdparty/lvgl/src/lv_draw/../lv_core/../lv_draw/lv_draw_blend.h:
 
-c:\21a-emb-aps2-healthdemic\src\asf\thirdparty\lvgl\src\lv_misc\lv_color.h:
+../src/ASF/thirdparty/lvgl/src/lv_draw/../lv_core/../lv_draw/../lv_misc/lv_color.h:
 
-c:\21a-emb-aps2-healthdemic\src\asf\thirdparty\lvgl\src\lv_misc\lv_area.h:
+../src/ASF/thirdparty/lvgl/src/lv_draw/../lv_core/../lv_draw/../lv_misc/lv_area.h:
 
 ../src/ASF/thirdparty/lvgl/src/lv_draw/../lv_core/../lv_draw/lv_draw_mask.h:
 

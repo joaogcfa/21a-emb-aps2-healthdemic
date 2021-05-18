@@ -39,6 +39,12 @@ static  lv_obj_t * labelPower;
 #define TASK_MAIN_STACK_SIZE         (1024*6/sizeof(portSTACK_TYPE))
 #define TASK_MAIN_PRIORITY           (tskIDLE_PRIORITY)
 
+#define AFEC AFEC1
+#define AFEC_ID ID_AFEC1
+#define AFEC_CHANNEL 6
+
+#define CHAR_DATA_LEN 250
+
 extern void vApplicationStackOverflowHook(xTaskHandle *pxTask, signed char *pcTaskName) {
 	printf("stack overflow %x %s\r\n", pxTask, (portCHAR *)pcTaskName);
 	for (;;) {	}
@@ -61,15 +67,32 @@ typedef struct  {
 } calendar;
 volatile char flag_rtc = 0;
 
+typedef struct {
+	int value;
+} adcData;
+
+typedef struct {
+	int ecg;
+	int bpm;
+} ecgInfo;
+
 SemaphoreHandle_t xSemaphore;
+QueueHandle_t xQueueECG;
+QueueHandle_t xQueueEcgInfo;
+volatile uint32_t g_ul_value = 0;
+volatile bool g_is_conversion_done = false;
+volatile int g_dT;
 
 /************************************************************************/
 /* STATIC                                                               */
 /************************************************************************/
 static  lv_obj_t * labelHour;
 static  lv_obj_t * labelMin;
+static lv_obj_t * labelOx;
+static lv_obj_t * labelEcg;
 
-
+LV_FONT_DECLARE(arial60);
+LV_FONT_DECLARE(arial20);
 
 
 /************************************************************************/
@@ -154,9 +177,138 @@ void RTC_init(Rtc *rtc, uint32_t id_rtc, calendar t, uint32_t irq_type){
 	rtc_enable_interrupt(rtc,  irq_type);
 }
 
+
+/************************************************************************/
+/* TC                                                                   */
+/************************************************************************/
+
+void TC_init(Tc * TC, int ID_TC, int TC_CHANNEL, int freq){
+	uint32_t ul_div;
+	uint32_t ul_tcclks;
+	uint32_t ul_sysclk = sysclk_get_cpu_hz();
+
+	/* Configura o PMC */
+	/* O TimerCounter é meio confuso
+	o uC possui 3 TCs, cada TC possui 3 canais
+	TC0 : ID_TC0, ID_TC1, ID_TC2
+	TC1 : ID_TC3, ID_TC4, ID_TC5
+	TC2 : ID_TC6, ID_TC7, ID_TC8
+	*/
+	pmc_enable_periph_clk(ID_TC);
+
+	/** Configura o TC para operar em  4Mhz e interrupçcão no RC compare */
+	tc_find_mck_divisor(freq, ul_sysclk, &ul_div, &ul_tcclks, ul_sysclk);
+	tc_init(TC, TC_CHANNEL, ul_tcclks | TC_CMR_CPCTRG);
+	tc_write_rc(TC, TC_CHANNEL, (ul_sysclk / ul_div) / freq);
+
+	/* Configura e ativa interrupçcão no TC canal 0 */
+	/* Interrupção no C */
+	NVIC_SetPriority(ID_TC, 4);
+	NVIC_EnableIRQ((IRQn_Type) ID_TC);
+	tc_enable_interrupt(TC, TC_CHANNEL, TC_IER_CPCS);
+
+	/* Inicializa o canal 0 do TC */
+	tc_start(TC, TC_CHANNEL);
+}
+
+void TC3_Handler(void){
+	volatile uint32_t ul_dummy;
+	
+	/* Selecina canal e inicializa conversão */
+	afec_channel_enable(AFEC, AFEC_CHANNEL);
+	afec_start_software_conversion(AFEC);
+	
+	/****************************************************************
+	* Devemos indicar ao TC que a interrupção foi satisfeita.
+	******************************************************************/
+	ul_dummy = tc_get_status(TC1, 0);
+	
+	/* Avoid compiler warning */
+	UNUSED(ul_dummy);
+	
+	/*flag_led1 = 1;*/
+}
+
+
+/************************************************************************/
+/* RTT                                                                  */
+/************************************************************************/
+
+void RTT_Handler(void)
+{
+	uint32_t ul_status;
+
+	/* Get RTT status - ACK */
+	ul_status = rtt_get_status(RTT);
+
+	/* IRQ due to Time has changed */
+	if ((ul_status & RTT_SR_RTTINC) == RTT_SR_RTTINC) {
+		//printf("%d\n", g_dT);
+		g_dT ++;
+		
+	}
+
+	/* IRQ due to Alarm */
+	if ((ul_status & RTT_SR_ALMS) == RTT_SR_ALMS) {
+		// pin_toggle(LED_PIO, LED_IDX_MASK);    // BLINK Led
+		//f_rtt_alarme = true;                  // flag RTT alarme
+	}
+}
+
+static float get_time_rtt(){
+	uint ul_previous_time = rtt_read_timer_value(RTT);
+}
+
+static void RTT_init(uint16_t pllPreScale, uint32_t IrqNPulses)
+{
+	uint32_t ul_previous_time;
+
+	/* Configure RTT for a 1 second tick interrupt */
+	rtt_sel_source(RTT, false);
+	rtt_init(RTT, pllPreScale);
+	
+	ul_previous_time = rtt_read_timer_value(RTT);
+	while (ul_previous_time == rtt_read_timer_value(RTT));
+	
+	rtt_write_alarm_time(RTT, IrqNPulses+ul_previous_time);
+
+	/* Enable RTT interrupt */
+	NVIC_DisableIRQ(RTT_IRQn);
+	NVIC_ClearPendingIRQ(RTT_IRQn);
+	NVIC_SetPriority(RTT_IRQn, 4);
+	NVIC_EnableIRQ(RTT_IRQn);
+	rtt_enable_interrupt(RTT, RTT_MR_ALMIEN | RTT_MR_RTTINCIEN);
+}
+
 /************************************************************************/
 /* lvgl                                                                 */
 /************************************************************************/
+
+int ser1_data[CHAR_DATA_LEN];
+lv_obj_t * chart;
+lv_chart_series_t * ser1;
+lv_obj_t * labelFloor;
+
+// Desenha gráfico no LCD
+void lv_screen_chart(void) {
+	chart = lv_chart_create(lv_scr_act(), NULL);
+	lv_obj_set_size(chart, 210, 80);
+	lv_obj_align(chart, NULL, LV_ALIGN_IN_BOTTOM_LEFT, 0, 0);
+	lv_chart_set_type(chart, LV_CHART_TYPE_LINE);
+	lv_chart_set_range(chart, 0, 4095);
+	lv_chart_set_point_count(chart, CHAR_DATA_LEN);
+	lv_chart_set_div_line_count(chart, 0, 0);
+	lv_chart_set_update_mode(chart, LV_CHART_UPDATE_MODE_SHIFT);
+
+	ser1 = lv_chart_add_series(chart, LV_COLOR_RED);
+	lv_chart_set_ext_array(chart, ser1, ser1_data, CHAR_DATA_LEN);
+	lv_obj_set_style_local_line_width(chart, LV_CHART_PART_SERIES, LV_STATE_DEFAULT, 1);
+	
+	
+	labelFloor = lv_label_create(lv_scr_act(), NULL);
+	lv_obj_align(labelFloor, NULL, LV_ALIGN_IN_TOP_RIGHT, -50 , 30);
+	lv_obj_set_style_local_text_color(labelFloor, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_BLACK);
+}
 
 lv_oxi(void) {
 	lv_obj_set_style_local_bg_color(lv_scr_act(), LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_WHITE);
@@ -178,14 +330,14 @@ lv_oxi(void) {
 	// alinha no canto esquerdo e desloca um pouco para cima e para direita
 	lv_obj_align(btnMenu, NULL, LV_ALIGN_IN_BOTTOM_RIGHT, -10, -10);
 	
-	// altera a cor de fundo, borda do botão criado para PRETO
-	lv_obj_set_style_local_bg_color(btnMenu, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_WHITE );
-	lv_obj_set_style_local_border_color(btnMenu, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_BLUE );
+	// altera a cor de fundo, borda do bot?o criado para PRETO
+	lv_obj_set_style_local_bg_color(btnMenu, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x40CFDF) );
+	lv_obj_set_style_local_border_color(btnMenu, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x40CFDF) );
 	lv_obj_set_style_local_border_width(btnMenu, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, 2);
 	
 	labelMenu = lv_label_create(btnMenu, NULL);
 	lv_label_set_recolor(labelMenu, true);
-	lv_label_set_text(labelMenu, "#00000   BEGIN  #");
+	lv_label_set_text(labelMenu, "#FFFFFF   BEGIN  #");
 	
 	// cria botao de tamanho 60x60 redondo do POWER
 	lv_obj_t * btnPower = lv_btn_create(lv_scr_act(), NULL);
@@ -195,7 +347,7 @@ lv_oxi(void) {
 	// alinha no canto esquerdo e desloca um pouco para cima e para direita
 	lv_obj_align(btnPower, NULL, LV_ALIGN_IN_TOP_LEFT, 10, 10);
 
-	// altera a cor de fundo, borda do botão criado para PRETO
+	// altera a cor de fundo, borda do bot?o criado para PRETO
 	lv_obj_set_style_local_bg_color(btnPower, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_WHITE );
 	lv_obj_set_style_local_border_color(btnPower, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_WHITE );
 	lv_obj_set_style_local_border_width(btnPower, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, 0);
@@ -212,7 +364,7 @@ lv_oxi(void) {
 	//lv_label_set_text_fmt(labelHour, "%02d", 17);
 	
 	labelMin = lv_label_create(lv_scr_act(), NULL);
-	lv_obj_align(labelMin, NULL, LV_ALIGN_IN_TOP_MID, 6 , 10);
+	lv_obj_align(labelMin, NULL, LV_ALIGN_IN_TOP_MID, 4 , 10);
 	//lv_obj_set_style_local_text_font(labelMin, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &dseg30);
 	lv_obj_set_style_local_text_color(labelMin, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_BLACK);
 
@@ -221,7 +373,96 @@ lv_oxi(void) {
 	lv_obj_align(labelBat, NULL, LV_ALIGN_IN_TOP_RIGHT, -5 , 5);
 	//lv_obj_set_style_local_text_font(labelHour, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &dseg30);
 	lv_obj_set_style_local_text_color(labelBat, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_BLACK);
-	lv_label_set_text_fmt(labelBat, "%d %", 17);// nao sei pq o % nao aparece
+	lv_label_set_text_fmt(labelBat, "%d %%", 17);
+
+
+	// lv_obj_t * labelOx;
+	labelOx = lv_label_create(lv_scr_act(), NULL);
+	lv_obj_align(labelOx, NULL, LV_ALIGN_IN_LEFT_MID, 10 , 0);
+	lv_obj_set_style_local_text_font(labelOx, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &arial60);
+	lv_obj_set_style_local_text_color(labelOx, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x40CFDF));
+	lv_label_set_text_fmt(labelOx, "98%%");
+
+	lv_obj_t * labelLegendaOx;
+	labelLegendaOx = lv_label_create(lv_scr_act(), NULL);
+	lv_obj_align(labelLegendaOx, NULL, LV_ALIGN_IN_LEFT_MID, 130 , 32);
+	lv_obj_set_style_local_text_font(labelLegendaOx, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &arial20);
+	lv_obj_set_style_local_text_color(labelLegendaOx, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x40CFDF));
+	lv_label_set_text_fmt(labelLegendaOx, "spO2");
+
+	// lv_obj_t * labelEcg;
+	labelEcg = lv_label_create(lv_scr_act(), NULL);
+	lv_obj_align(labelEcg, NULL, LV_ALIGN_IN_RIGHT_MID, -100 , 0);
+	lv_obj_set_style_local_text_font(labelEcg, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &arial60);
+	lv_obj_set_style_local_text_color(labelEcg, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0xED0B00));
+	lv_label_set_text_fmt(labelEcg, "70");
+
+	lv_obj_t * labelLegendaEcg;
+	labelLegendaEcg = lv_label_create(lv_scr_act(), NULL);
+	lv_obj_align(labelLegendaEcg, NULL, LV_ALIGN_IN_RIGHT_MID, -30 , 30);
+	lv_obj_set_style_local_text_font(labelLegendaEcg, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &arial20);
+	lv_obj_set_style_local_text_color(labelLegendaEcg, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0xED0B00));
+	lv_label_set_text_fmt(labelLegendaEcg, "bpm");
+	
+}
+
+
+/************************************************************************/
+/* CALLBACK                                                             */
+/************************************************************************/
+
+static void AFEC_Callback(void){
+	g_ul_value = afec_channel_get_value(AFEC, AFEC_CHANNEL);
+	g_is_conversion_done = true;
+	adcData adc;
+	adc.value = g_ul_value;
+	xQueueSendFromISR(xQueueECG, &adc, 0);
+}
+
+
+
+static void config_AFEC(Afec *afec, uint32_t afec_id, uint32_t afec_channel, afec_callback_t callback){
+	/*************************************
+	* Ativa e configura AFEC
+	*************************************/
+	/* Ativa AFEC - 0 */
+	afec_enable(afec);
+
+	/* struct de configuracao do AFEC */
+	struct afec_config afec_cfg;
+
+	/* Carrega parametros padrao */
+	afec_get_config_defaults(&afec_cfg);
+
+	/* Configura AFEC */
+	afec_init(afec, &afec_cfg);
+
+	/* Configura trigger por software */
+	afec_set_trigger(afec, AFEC_TRIG_SW);
+
+	/*** Configuracao específica do canal AFEC ***/
+	struct afec_ch_config afec_ch_cfg;
+	afec_ch_get_config_defaults(&afec_ch_cfg);
+	afec_ch_cfg.gain = AFEC_GAINVALUE_0;
+	afec_ch_set_config(afec, afec_channel, &afec_ch_cfg);
+
+	/*
+	* Calibracao:
+	* Because the internal ADC offset is 0x200, it should cancel it and shift
+	down to 0.
+	*/
+	afec_channel_set_analog_offset(afec, afec_channel, 0x200);
+
+	/***  Configura sensor de temperatura ***/
+	struct afec_temp_sensor_config afec_temp_sensor_cfg;
+
+	afec_temp_sensor_get_config_defaults(&afec_temp_sensor_cfg);
+	afec_temp_sensor_set_config(afec, &afec_temp_sensor_cfg);
+	
+	/* configura IRQ */
+	afec_set_callback(afec, afec_channel,	callback, 1);
+	NVIC_SetPriority(afec_id, 4);
+	NVIC_EnableIRQ(afec_id);
 }
 
 /************************************************************************/
@@ -229,7 +470,7 @@ lv_oxi(void) {
 /************************************************************************/
 
 static void task_lcd(void *pvParameters) {
-
+	lv_screen_chart();
 	lv_oxi();
 	for (;;)  {
 		lv_tick_inc(50);
@@ -239,12 +480,28 @@ static void task_lcd(void *pvParameters) {
 }
 
 static void task_main(void *pvParameters) {
-
+	ecgInfo ecg_;
 	char ox;
 	for (;;)  {
 		
 		if ( xQueueReceive( xQueueOx, &ox, 0 )) {
-			//printf("ox: %d \n", ox);
+			lv_label_set_text_fmt(labelOx, "%d%%", ox);
+		}
+
+		if (xQueueReceive( xQueueEcgInfo, &(ecg_), ( TickType_t )  500 / portTICK_PERIOD_MS)) {
+			/*printf("%d\n", ecg_.ecg);*/
+			printf("BPM: %d\n", ecg_.bpm);
+			
+			if (ecg_.bpm > 0){
+				lv_label_set_text_fmt(labelEcg, "%d", ecg_.bpm);	
+			}
+			else{
+				lv_label_set_text_fmt(labelEcg, "0", ecg_.bpm);
+			}
+			
+			lv_chart_set_next(chart, ser1, ecg_.ecg);
+			lv_obj_set_style_local_size(chart, LV_CHART_PART_SERIES, LV_STATE_DEFAULT, LV_DPI/150);
+			lv_chart_refresh(chart);
 		}
 		
 		vTaskDelay(25);
@@ -282,6 +539,52 @@ static void task_clock(void *pvParameters) {
 		}
 	}
 }
+
+static void task_process(void *pvParameters) {
+	xQueueECG = xQueueCreate(250, sizeof(int));
+	TC_init(TC1, ID_TC3, 0, 250);
+	config_AFEC(AFEC, AFEC_ID, AFEC_CHANNEL, AFEC_Callback);
+	
+	adcData adc;
+	ecgInfo ecg_;
+	int flag = 0;
+	int bpm;
+	
+	for (;;)  {
+		uint16_t pllPreScale = (int) (((float) 32768) / 1000.0);
+		uint32_t irqRTTvalue = 0.001;
+		
+		// reinicia RTT para gerar um novo IRQ
+		RTT_init(pllPreScale, irqRTTvalue);
+		//f_rtt_alarme = 5;
+		if (xQueueReceive( xQueueECG, &(adc), ( TickType_t )  100 / portTICK_PERIOD_MS)) {
+			/*printf("%d\n", adc.value);*/
+		
+			if (adc.value > 3280  && flag == 0){
+				printf("%d: %d ms\n", adc.value, g_dT);
+				// começamos a contar novamente
+				double valor = 60000/g_dT;
+				bpm = (int) valor;
+				ecg_.bpm = bpm;
+// 				printf("BPM: %d\n", ecg_.bpm);
+				g_dT = 0;
+				flag = 1;
+			}
+			if(adc.value <3280){
+				flag = 0;
+			}
+			ecg_.ecg = adc.value;
+			xQueueSend(xQueueEcgInfo, &ecg_, 0);
+			
+			
+		}
+		
+		
+		
+	}
+
+}
+
 
 /************************************************************************/
 /* configs                                                              */
@@ -376,9 +679,14 @@ int main(void) {
 	
 	xQueueOx = xQueueCreate(32, sizeof(char));
 	xSemaphore = xSemaphoreCreateBinary();
+	xQueueEcgInfo = xQueueCreate(32, sizeof(ecgInfo));
 
 	if (xTaskCreate(task_lcd, "LCD", TASK_LCD_STACK_SIZE, NULL, TASK_LCD_PRIORITY, NULL) != pdPASS) {
 		printf("Failed to create lcd task\r\n");
+	}
+
+	if (xTaskCreate(task_process, "process", TASK_LCD_STACK_SIZE, NULL, TASK_LCD_PRIORITY, NULL) != pdPASS) {
+		printf("Failed to create process task\r\n");
 	}
 	
 	if (xTaskCreate(task_clock, "RTC", TASK_LCD_STACK_SIZE, NULL, TASK_LCD_PRIORITY, NULL) != pdPASS) {

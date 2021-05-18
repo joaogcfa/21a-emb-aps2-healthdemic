@@ -4,9 +4,15 @@
 
 src\aps2\aps2.c
 
+src\arial20.c
+
+src\arial60.c
+
 src\ASF\sam\drivers\dacc\dacc.c
 
 src\ASF\sam\drivers\rtc\rtc.c
+
+src\ASF\sam\drivers\rtt\rtt.c
 
 src\ASF\sam\drivers\tc\tc.c
 
