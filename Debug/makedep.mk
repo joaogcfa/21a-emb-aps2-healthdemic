@@ -16,6 +16,8 @@ src\ASF\sam\drivers\rtt\rtt.c
 
 src\ASF\sam\drivers\tc\tc.c
 
+src\aviso.c
+
 src\health.c
 
 src\logo.c

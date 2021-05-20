@@ -1,3 +1,19 @@
+// 	   Valor salvo de oxigenaÃ§Ã£o/batimento
+//     Alarme caso o valor de oximetria abaixe de 90
+
+// O usuÃ¡rio deve ser capaz de:
+
+//     Salvar o valor em um instante de oxigenaÃ§Ã£o e batimento
+//     Desligar alarme
+
+
+
+//     Arrumar o bpm de 3 digitos
+
+
+
+
+
 /************************************************************************/
 /* includes                                                             */
 /************************************************************************/
@@ -12,6 +28,7 @@
 #include "aps2/ecg.h"
 #include "logo.h"
 #include "health.h"
+#include "aviso.h"
 
 /************************************************************************/
 /* STATIC                                                               */
@@ -94,6 +111,8 @@ static lv_obj_t * labelEcg;
 LV_FONT_DECLARE(arial60);
 LV_FONT_DECLARE(arial20);
 
+volatile int flag_inicia = 0;
+
 
 /************************************************************************/
 /* ASP2 - NAO MEXER!                                                    */
@@ -114,6 +133,7 @@ const int g_ecgSize =  sizeof(ecg)/sizeof(ecg[0]);
 static void menu_handler(lv_obj_t * obj, lv_event_t event) {
 	if(event == LV_EVENT_CLICKED) {
 		printf("Clicked\n");
+		flag_inicia = !flag_inicia;
 	}
 	else if(event == LV_EVENT_VALUE_CHANGED) {
 		printf("Toggled\n");
@@ -188,7 +208,7 @@ void TC_init(Tc * TC, int ID_TC, int TC_CHANNEL, int freq){
 	uint32_t ul_sysclk = sysclk_get_cpu_hz();
 
 	/* Configura o PMC */
-	/* O TimerCounter é meio confuso
+	/* O TimerCounter ï¿½ meio confuso
 	o uC possui 3 TCs, cada TC possui 3 canais
 	TC0 : ID_TC0, ID_TC1, ID_TC2
 	TC1 : ID_TC3, ID_TC4, ID_TC5
@@ -196,13 +216,13 @@ void TC_init(Tc * TC, int ID_TC, int TC_CHANNEL, int freq){
 	*/
 	pmc_enable_periph_clk(ID_TC);
 
-	/** Configura o TC para operar em  4Mhz e interrupçcão no RC compare */
+	/** Configura o TC para operar em  4Mhz e interrupï¿½cï¿½o no RC compare */
 	tc_find_mck_divisor(freq, ul_sysclk, &ul_div, &ul_tcclks, ul_sysclk);
 	tc_init(TC, TC_CHANNEL, ul_tcclks | TC_CMR_CPCTRG);
 	tc_write_rc(TC, TC_CHANNEL, (ul_sysclk / ul_div) / freq);
 
-	/* Configura e ativa interrupçcão no TC canal 0 */
-	/* Interrupção no C */
+	/* Configura e ativa interrupï¿½cï¿½o no TC canal 0 */
+	/* Interrupï¿½ï¿½o no C */
 	NVIC_SetPriority(ID_TC, 4);
 	NVIC_EnableIRQ((IRQn_Type) ID_TC);
 	tc_enable_interrupt(TC, TC_CHANNEL, TC_IER_CPCS);
@@ -214,12 +234,12 @@ void TC_init(Tc * TC, int ID_TC, int TC_CHANNEL, int freq){
 void TC3_Handler(void){
 	volatile uint32_t ul_dummy;
 	
-	/* Selecina canal e inicializa conversão */
+	/* Selecina canal e inicializa conversï¿½o */
 	afec_channel_enable(AFEC, AFEC_CHANNEL);
 	afec_start_software_conversion(AFEC);
 	
 	/****************************************************************
-	* Devemos indicar ao TC que a interrupção foi satisfeita.
+	* Devemos indicar ao TC que a interrupï¿½ï¿½o foi satisfeita.
 	******************************************************************/
 	ul_dummy = tc_get_status(TC1, 0);
 	
@@ -289,10 +309,10 @@ lv_obj_t * chart;
 lv_chart_series_t * ser1;
 lv_obj_t * labelFloor;
 
-// Desenha gráfico no LCD
+// Desenha grï¿½fico no LCD
 void lv_screen_chart(void) {
 	chart = lv_chart_create(lv_scr_act(), NULL);
-	lv_obj_set_size(chart, 210, 80);
+	lv_obj_set_size(chart, 200, 70);
 	lv_obj_align(chart, NULL, LV_ALIGN_IN_BOTTOM_LEFT, 0, 0);
 	lv_chart_set_type(chart, LV_CHART_TYPE_LINE);
 	lv_chart_set_range(chart, 0, 4095);
@@ -320,6 +340,8 @@ lv_oxi(void) {
 	lv_obj_t * img1 = lv_img_create(lv_scr_act(), NULL);
 	lv_img_set_src(img1, &logo);
 	lv_obj_align(img1, NULL, LV_ALIGN_IN_TOP_LEFT, 5, 30);
+	
+	
 	
 	lv_obj_t * health_txt = lv_img_create(lv_scr_act(), NULL);
 	lv_img_set_src(health_txt, &health);
@@ -385,7 +407,7 @@ lv_oxi(void) {
 	lv_obj_align(labelOx, NULL, LV_ALIGN_IN_LEFT_MID, 10 , 0);
 	lv_obj_set_style_local_text_font(labelOx, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &arial60);
 	lv_obj_set_style_local_text_color(labelOx, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x40CFDF));
-	lv_label_set_text_fmt(labelOx, "98%%");
+	lv_label_set_text_fmt(labelOx, "0%%");
 
 	lv_obj_t * labelLegendaOx;
 	labelLegendaOx = lv_label_create(lv_scr_act(), NULL);
@@ -399,7 +421,7 @@ lv_oxi(void) {
 	lv_obj_align(labelEcg, NULL, LV_ALIGN_IN_RIGHT_MID, -100 , 0);
 	lv_obj_set_style_local_text_font(labelEcg, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &arial60);
 	lv_obj_set_style_local_text_color(labelEcg, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0xED0B00));
-	lv_label_set_text_fmt(labelEcg, "70");
+	lv_label_set_text_fmt(labelEcg, "0");
 
 	lv_obj_t * labelLegendaEcg;
 	labelLegendaEcg = lv_label_create(lv_scr_act(), NULL);
@@ -444,7 +466,7 @@ static void config_AFEC(Afec *afec, uint32_t afec_id, uint32_t afec_channel, afe
 	/* Configura trigger por software */
 	afec_set_trigger(afec, AFEC_TRIG_SW);
 
-	/*** Configuracao específica do canal AFEC ***/
+	/*** Configuracao especï¿½fica do canal AFEC ***/
 	struct afec_ch_config afec_ch_cfg;
 	afec_ch_get_config_defaults(&afec_ch_cfg);
 	afec_ch_cfg.gain = AFEC_GAINVALUE_0;
@@ -485,27 +507,45 @@ static void task_lcd(void *pvParameters) {
 
 static void task_main(void *pvParameters) {
 	ecgInfo ecg_;
+	int flag = 0;
+	int flag2 = 0;
 	char ox;
 	for (;;)  {
+		if(flag_inicia){
 		
-		if ( xQueueReceive( xQueueOx, &ox, 0 )) {
-			lv_label_set_text_fmt(labelOx, "%d%%", ox);
-		}
+			if ( xQueueReceive( xQueueOx, &ox, 0 )) {
+				lv_label_set_text_fmt(labelOx, "%d%%", ox);
+				if(ox < 90){
+					lv_obj_t * img2 = lv_img_create(lv_scr_act(), NULL);
+					lv_img_set_src(img2, &aviso);
+					lv_obj_align(img2, NULL, LV_ALIGN_IN_LEFT_MID, 130, -10);
+				}
+			}
 
-		if (xQueueReceive( xQueueEcgInfo, &(ecg_), ( TickType_t )  500 / portTICK_PERIOD_MS)) {
-			/*printf("%d\n", ecg_.ecg);*/
-			printf("BPM: %d\n", ecg_.bpm);
-			
-			if (ecg_.bpm > 0){
-				lv_label_set_text_fmt(labelEcg, "%d", ecg_.bpm);	
+			if (xQueueReceive( xQueueEcgInfo, &(ecg_), ( TickType_t )  500 / portTICK_PERIOD_MS)) {
+				/*printf("%d\n", ecg_.ecg);*/
+				printf("BPM: %d\n", ecg_.bpm);
+				
+				if (ecg_.bpm > 0){
+					lv_label_set_text_fmt(labelEcg, "%d", ecg_.bpm);	
+				}
+				else{
+					lv_label_set_text_fmt(labelEcg, "0", ecg_.bpm);
+				}
+				
+				lv_chart_set_next(chart, ser1, ecg_.ecg);
+				lv_obj_set_style_local_size(chart, LV_CHART_PART_SERIES, LV_STATE_DEFAULT, LV_DPI/150);
+				lv_chart_refresh(chart);
 			}
-			else{
-				lv_label_set_text_fmt(labelEcg, "0", ecg_.bpm);
-			}
-			
-			lv_chart_set_next(chart, ser1, ecg_.ecg);
+			flag = 1;
+		}
+		else if (flag){
+			lv_label_set_text_fmt(labelOx, "%02d%%", 0);
+			lv_label_set_text_fmt(labelEcg, "%02d", 0);
+			lv_chart_set_next(chart, ser1, 0);
 			lv_obj_set_style_local_size(chart, LV_CHART_PART_SERIES, LV_STATE_DEFAULT, LV_DPI/150);
 			lv_chart_refresh(chart);
+			pmc_sleep(SAM_PM_SMODE_SLEEP_WFI);
 		}
 		
 		vTaskDelay(25);
@@ -566,7 +606,7 @@ static void task_process(void *pvParameters) {
 		
 			if (adc.value > 3280  && flag == 0){
 				printf("%d: %d ms\n", adc.value, g_dT);
-				// começamos a contar novamente
+				// comeï¿½amos a contar novamente
 				double valor = 60000/g_dT;
 				bpm = (int) valor;
 				ecg_.bpm = bpm;
@@ -578,9 +618,7 @@ static void task_process(void *pvParameters) {
 				flag = 0;
 			}
 			ecg_.ecg = adc.value;
-			xQueueSend(xQueueEcgInfo, &ecg_, 0);
-			
-			
+			xQueueSend(xQueueEcgInfo, &ecg_, 0);			
 		}
 		
 		
