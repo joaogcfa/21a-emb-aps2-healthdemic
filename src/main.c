@@ -400,10 +400,10 @@ void lv_page1(void) {
 	// cria botao de tamanho 60x60 redondo do MENU
 	lv_obj_t * btnMenu = lv_btn_create(page1, NULL);
 	lv_obj_set_event_cb(btnMenu, menu_handler);
-	lv_obj_set_width(btnMenu, 100);  lv_obj_set_height(btnMenu, 40);
+	lv_obj_set_width(btnMenu, 100);  lv_obj_set_height(btnMenu, 33);
 
 	// alinha no canto esquerdo e desloca um pouco para cima e para direita
-	lv_obj_align(btnMenu, lv_scr_act(), LV_ALIGN_IN_BOTTOM_RIGHT, -10, -10);
+	lv_obj_align(btnMenu, lv_scr_act(), LV_ALIGN_IN_BOTTOM_RIGHT, -10, -2);
 	
 	// altera a cor de fundo, borda do bot?o criado para PRETO
 	lv_obj_set_style_local_bg_color(btnMenu, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x40CFDF) );
@@ -415,21 +415,21 @@ void lv_page1(void) {
 	lv_label_set_text(labelMenu, "#FFFFFF   BEGIN  #");
 
 	// cria botao de tamanho 60x60 redondo do MENU
-	// lv_obj_t * btnSave = lv_btn_create(page1, NULL);
-	// lv_obj_set_event_cb(btnSave, menu_handler);
-	// lv_obj_set_width(btnSave, 100);  lv_obj_set_height(btnSave, 40);
+	lv_obj_t * btnSave = lv_btn_create(page1, NULL);
+	lv_obj_set_event_cb(btnSave, menu_handler);
+	lv_obj_set_width(btnSave, 100);  lv_obj_set_height(btnSave, 33);
 
 	// // alinha no canto esquerdo e desloca um pouco para cima e para direita
-	// lv_obj_align(btnSave, lv_scr_act(), LV_ALIGN_IN_BOTTOM_RIGHT, -10, -10);
+	lv_obj_align(btnSave, lv_scr_act(), LV_ALIGN_IN_BOTTOM_RIGHT, -10, -37);
 	
 	// // altera a cor de fundo, borda do bot?o criado para PRETO
-	// lv_obj_set_style_local_bg_color(btnSave, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x40CFDF) );
-	// lv_obj_set_style_local_border_color(btnSave, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x40CFDF) );
-	// lv_obj_set_style_local_border_width(btnSave, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, 2);
+	lv_obj_set_style_local_bg_color(btnSave, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x40CFDF) );
+	lv_obj_set_style_local_border_color(btnSave, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x40CFDF) );
+	lv_obj_set_style_local_border_width(btnSave, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, 2);
 	
-	// labelSave = lv_label_create(btnSave, NULL);
-	// lv_label_set_recolor(labelSave, true);
-	// lv_label_set_text(labelSave, "#FFFFFF   SAVE  #");
+	lv_obj_t * labelSave = lv_label_create(btnSave, NULL);
+	lv_label_set_recolor(labelSave, true);
+	lv_label_set_text(labelSave, "#FFFFFF   SAVE  #");
 
 	// labelFloor = lv_label_create(lv_scr_act(), NULL);
 	// lv_obj_align(labelFloor, NULL, LV_ALIGN_IN_TOP_RIGHT, -50 , 30);
