@@ -1,15 +1,11 @@
 // 	   Valor salvo de oxigenação/batimento
-//     Alarme caso o valor de oximetria abaixe de 90
 
 // O usuário deve ser capaz de:
 
 //     Salvar o valor em um instante de oxigenação e batimento
-//     Desligar alarme
-
-
 
 //     Arrumar o bpm de 3 digitos
-
+//	   Toggle do botao de aviso
 
 
 
@@ -74,7 +70,7 @@ extern void vApplicationIdleHook(void) { }
 extern void vApplicationTickHook(void) { }
 
 extern void vApplicationMallocFailedHook(void) {  configASSERT( ( volatile void * ) NULL ); }
-	
+
 typedef struct  {
 	uint32_t year;
 	uint32_t month;
@@ -114,6 +110,7 @@ LV_FONT_DECLARE(arial60);
 LV_FONT_DECLARE(arial20);
 
 volatile int flag_inicia = 0;
+volatile int pagina = 0;
 
 
 /************************************************************************/
@@ -147,9 +144,9 @@ static void disable_handler(lv_obj_t * obj, lv_event_t event) {
 		printf("Clicked\n");
 		lv_img_set_src(img2, &white);
 	}
-// 	else if(event == LV_EVENT_VALUE_CHANGED) {
-// 		printf("Toggled\n");
-// 	}
+	// 	else if(event == LV_EVENT_VALUE_CHANGED) {
+	// 		printf("Toggled\n");
+	// 	}
 }
 
 static void power_handler(lv_obj_t * obj, lv_event_t event) {
@@ -320,12 +317,71 @@ int ser1_data[CHAR_DATA_LEN];
 lv_obj_t * chart;
 lv_chart_series_t * ser1;
 lv_obj_t * labelFloor;
+lv_obj_t * head;
+lv_obj_t * body;
+lv_obj_t * page1;
+lv_obj_t * page2;
 
-// Desenha gr�fico no LCD
-void lv_screen_chart(void) {
-	chart = lv_chart_create(lv_scr_act(), NULL);
+
+static void event_handler(lv_obj_t * obj, lv_event_t event) {
+	if(event == LV_EVENT_VALUE_CHANGED) {
+		const char * txt = lv_btnmatrix_get_active_btn_text(obj);
+		printf("%s was pressed\n", txt);
+	}
+}
+
+
+void lv_page1(void) {
+	
+	page1 = lv_page_create(body, NULL);
+	lv_obj_set_width(page1, 320);  lv_obj_set_height(page1, 190);
+	
+	 lv_obj_t * btnDis = lv_btn_create(page1, NULL);
+	lv_obj_set_event_cb(btnDis, disable_handler);
+	lv_obj_set_width(btnDis, 50);  lv_obj_set_height(btnDis, 50);
+
+	lv_obj_align(btnDis, lv_scr_act(), LV_ALIGN_IN_LEFT_MID, 130, -10);
+
+	// altera a cor de fundo, borda do bot?o criado para branco para esconder
+	//lv_obj_set_style_local_bg_color(btnDis, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT,  LV_COLOR_WHITE);
+	lv_obj_set_style_local_border_color(btnDis, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_WHITE);
+	lv_obj_set_style_local_border_width(btnDis, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, 0);
+	
+	img2 = lv_img_create(page1, NULL);
+	lv_obj_align(img2, lv_scr_act(), LV_ALIGN_IN_LEFT_MID, 130, -10);
+	lv_img_set_src(img2, &white);
+
+	labelOx = lv_label_create(page1, NULL);
+	lv_obj_align(labelOx, lv_scr_act(), LV_ALIGN_IN_LEFT_MID, 10 , 0);
+	lv_obj_set_style_local_text_font(labelOx, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &arial60);
+	lv_obj_set_style_local_text_color(labelOx, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x40CFDF));
+	lv_label_set_text_fmt(labelOx, "0%%");
+
+	lv_obj_t * labelLegendaOx;
+	labelLegendaOx = lv_label_create(page1, NULL);
+	lv_obj_align(labelLegendaOx, lv_scr_act(), LV_ALIGN_IN_LEFT_MID, 130 , 32);
+	lv_obj_set_style_local_text_font(labelLegendaOx, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &arial20);
+	lv_obj_set_style_local_text_color(labelLegendaOx, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x40CFDF));
+	lv_label_set_text_fmt(labelLegendaOx, "spO2");
+
+	// lv_obj_t * labelEcg;
+	labelEcg = lv_label_create(page1, NULL);
+	lv_obj_align(labelEcg, lv_scr_act(), LV_ALIGN_IN_RIGHT_MID, -100 , 0);
+	lv_obj_set_style_local_text_font(labelEcg, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &arial60);
+	lv_obj_set_style_local_text_color(labelEcg, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0xED0B00));
+	lv_label_set_text_fmt(labelEcg, "0");
+
+	lv_obj_t * labelLegendaEcg;
+	labelLegendaEcg = lv_label_create(page1, NULL);
+	lv_obj_align(labelLegendaEcg, lv_scr_act(), LV_ALIGN_IN_RIGHT_MID, -30 , 30);
+	lv_obj_set_style_local_text_font(labelLegendaEcg, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &arial20);
+	lv_obj_set_style_local_text_color(labelLegendaEcg, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0xED0B00));
+	lv_label_set_text_fmt(labelLegendaEcg, "bpm");
+	
+	// chart
+	chart = lv_chart_create(page1, NULL);
 	lv_obj_set_size(chart, 200, 70);
-	lv_obj_align(chart, NULL, LV_ALIGN_IN_BOTTOM_LEFT, 0, 0);
+	lv_obj_align(chart, lv_scr_act(), LV_ALIGN_IN_BOTTOM_LEFT, 0, 0);
 	lv_chart_set_type(chart, LV_CHART_TYPE_LINE);
 	lv_chart_set_range(chart, 0, 4095);
 	lv_chart_set_point_count(chart, CHAR_DATA_LEN);
@@ -341,47 +397,13 @@ void lv_screen_chart(void) {
 	lv_obj_set_style_local_bg_main_stop(chart, LV_CHART_PART_SERIES, LV_STATE_DEFAULT, 255);    /*Max opa on the top*/
 	lv_obj_set_style_local_bg_grad_stop(chart, LV_CHART_PART_SERIES, LV_STATE_DEFAULT, 0);      /*Transparent on the bottom*/
 	
-	labelFloor = lv_label_create(lv_scr_act(), NULL);
-	lv_obj_align(labelFloor, NULL, LV_ALIGN_IN_TOP_RIGHT, -50 , 30);
-	lv_obj_set_style_local_text_color(labelFloor, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_WHITE);
-}
-
-lv_oxi(void) {
-	lv_obj_set_style_local_bg_color(lv_scr_act(), LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_WHITE);
-	
-	lv_obj_t * img1 = lv_img_create(lv_scr_act(), NULL);
-	lv_img_set_src(img1, &logo);
-	lv_obj_align(img1, NULL, LV_ALIGN_IN_TOP_LEFT, 5, 30);
-	
-	
-
-	lv_obj_t * btnDis = lv_btn_create(lv_scr_act(), NULL);
-	lv_obj_set_event_cb(btnDis, disable_handler);
-	lv_obj_set_width(btnDis, 50);  lv_obj_set_height(btnDis, 50);
-
-	lv_obj_align(btnDis, NULL, LV_ALIGN_IN_LEFT_MID, 130, -10);
-
-	// altera a cor de fundo, borda do bot?o criado para branco para esconder
-	//lv_obj_set_style_local_bg_color(btnDis, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT,  LV_COLOR_WHITE);
-	lv_obj_set_style_local_border_color(btnDis, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_BLACK);
-	lv_obj_set_style_local_border_width(btnDis, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, 0);
-	
-	img2 = lv_img_create(lv_scr_act(), NULL);
-	lv_obj_align(img2, NULL, LV_ALIGN_IN_LEFT_MID, 130, -10);
-	lv_img_set_src(img2, &white);
-	
-	lv_obj_t * health_txt = lv_img_create(lv_scr_act(), NULL);
-	lv_img_set_src(health_txt, &health);
-	lv_obj_align(health_txt, NULL, LV_ALIGN_IN_TOP_LEFT, 50, 40);
-	
-	
 	// cria botao de tamanho 60x60 redondo do MENU
-	lv_obj_t * btnMenu = lv_btn_create(lv_scr_act(), NULL);
+	lv_obj_t * btnMenu = lv_btn_create(page1, NULL);
 	lv_obj_set_event_cb(btnMenu, menu_handler);
 	lv_obj_set_width(btnMenu, 100);  lv_obj_set_height(btnMenu, 40);
 
 	// alinha no canto esquerdo e desloca um pouco para cima e para direita
-	lv_obj_align(btnMenu, NULL, LV_ALIGN_IN_BOTTOM_RIGHT, -10, -10);
+	lv_obj_align(btnMenu, lv_scr_act(), LV_ALIGN_IN_BOTTOM_RIGHT, -10, -10);
 	
 	// altera a cor de fundo, borda do bot?o criado para PRETO
 	lv_obj_set_style_local_bg_color(btnMenu, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x40CFDF) );
@@ -391,9 +413,93 @@ lv_oxi(void) {
 	labelMenu = lv_label_create(btnMenu, NULL);
 	lv_label_set_recolor(labelMenu, true);
 	lv_label_set_text(labelMenu, "#FFFFFF   BEGIN  #");
+
+	// cria botao de tamanho 60x60 redondo do MENU
+	// lv_obj_t * btnSave = lv_btn_create(page1, NULL);
+	// lv_obj_set_event_cb(btnSave, menu_handler);
+	// lv_obj_set_width(btnSave, 100);  lv_obj_set_height(btnSave, 40);
+
+	// // alinha no canto esquerdo e desloca um pouco para cima e para direita
+	// lv_obj_align(btnSave, lv_scr_act(), LV_ALIGN_IN_BOTTOM_RIGHT, -10, -10);
 	
-	// cria botao de tamanho 60x60 redondo do POWER
-	lv_obj_t * btnPower = lv_btn_create(lv_scr_act(), NULL);
+	// // altera a cor de fundo, borda do bot?o criado para PRETO
+	// lv_obj_set_style_local_bg_color(btnSave, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x40CFDF) );
+	// lv_obj_set_style_local_border_color(btnSave, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x40CFDF) );
+	// lv_obj_set_style_local_border_width(btnSave, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, 2);
+	
+	// labelSave = lv_label_create(btnSave, NULL);
+	// lv_label_set_recolor(labelSave, true);
+	// lv_label_set_text(labelSave, "#FFFFFF   SAVE  #");
+
+	// labelFloor = lv_label_create(lv_scr_act(), NULL);
+	// lv_obj_align(labelFloor, NULL, LV_ALIGN_IN_TOP_RIGHT, -50 , 30);
+	// lv_obj_set_style_local_text_color(labelFloor, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_WHITE);
+}
+
+void lv_page2(void) {
+	
+	page2 = lv_page_create(body, NULL);
+	lv_obj_set_width(page2, 320);  lv_obj_set_height(page2, 190);
+
+	lv_obj_t * label;
+
+	label = lv_label_create(page2, NULL);
+	lv_label_set_text(label, "PAGINA 2");
+}
+
+void lv_body(void) {
+	body =  lv_cont_create(lv_scr_act(), NULL);
+	lv_obj_align(body, head, LV_ALIGN_OUT_BOTTOM_LEFT, 0, 0);
+	lv_obj_set_width(body, 320);  lv_obj_set_height(body, 190);
+	lv_cont_set_layout(body, LV_LAYOUT_OFF);
+
+}
+
+/************************************************************************/
+/* handlers setas que trocam página                                     */
+/************************************************************************/
+
+static void arrowLeft_handler(lv_obj_t * obj, lv_event_t event) {
+	if(event == LV_EVENT_CLICKED) {
+		printf("Clicked\n");
+		if(pagina == 1) {
+			lv_page1();
+			pagina--;
+		}
+	}
+	else if(event == LV_EVENT_VALUE_CHANGED) {
+		printf("Toggled\n");
+	}
+}
+
+static void arrowRight_handler(lv_obj_t * obj, lv_event_t event) {
+	if(event == LV_EVENT_CLICKED) {
+		printf("Clicked\n");
+		if(pagina == 0) {
+			lv_page2();
+			pagina++;
+		}
+	}
+	else if(event == LV_EVENT_VALUE_CHANGED) {
+		printf("Toggled\n");
+	}
+}
+
+
+void lv_head(void) {
+	head = lv_cont_create(lv_scr_act(), NULL);
+	lv_obj_align(head, NULL, LV_ALIGN_IN_TOP_LEFT, 0, 0);
+	lv_obj_set_width(head, 320);  lv_obj_set_height(head, 75);
+	lv_cont_set_layout(head, LV_LAYOUT_OFF);
+
+	lv_obj_t * img1 = lv_img_create(head, NULL);
+	lv_img_set_src(img1, &logo);
+	lv_obj_align(img1, NULL, LV_ALIGN_IN_TOP_LEFT, 5, 30);
+	lv_obj_t * health_txt = lv_img_create(head, NULL);
+	lv_img_set_src(health_txt, &health);
+	lv_obj_align(health_txt, NULL, LV_ALIGN_IN_TOP_LEFT, 50, 40);
+// cria botao de tamanho 60x60 redondo do POWER
+	lv_obj_t * btnPower = lv_btn_create(head, NULL);
 	lv_obj_set_event_cb(btnPower, power_handler);
 	lv_obj_set_width(btnPower, 30);  lv_obj_set_height(btnPower, 30);
 
@@ -404,61 +510,68 @@ lv_oxi(void) {
 	lv_obj_set_style_local_bg_color(btnPower, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_WHITE );
 	lv_obj_set_style_local_border_color(btnPower, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_WHITE );
 	lv_obj_set_style_local_border_width(btnPower, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, 0);
-	 
+	
 	labelPower = lv_label_create(btnPower, NULL);
 	lv_label_set_recolor(labelPower, true);
 	lv_label_set_text(labelPower, "#00000 [  " LV_SYMBOL_POWER "  |#");
 	
 	
-	labelHour = lv_label_create(lv_scr_act(), NULL);
+	labelHour = lv_label_create(head, NULL);
 	lv_obj_align(labelHour, NULL, LV_ALIGN_IN_TOP_MID, -13 , 10);
 	//lv_obj_set_style_local_text_font(labelHour, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &dseg30);
 	lv_obj_set_style_local_text_color(labelHour, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_BLACK);
 	//lv_label_set_text_fmt(labelHour, "%02d", 17);
 	
-	labelMin = lv_label_create(lv_scr_act(), NULL);
+	labelMin = lv_label_create(head, NULL);
 	lv_obj_align(labelMin, NULL, LV_ALIGN_IN_TOP_MID, 4 , 10);
 	//lv_obj_set_style_local_text_font(labelMin, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &dseg30);
 	lv_obj_set_style_local_text_color(labelMin, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_BLACK);
 
 	lv_obj_t * labelBat;
-	labelBat = lv_label_create(lv_scr_act(), NULL);
+	labelBat = lv_label_create(head, NULL);
 	lv_obj_align(labelBat, NULL, LV_ALIGN_IN_TOP_RIGHT, -5 , 5);
 	//lv_obj_set_style_local_text_font(labelHour, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &dseg30);
 	lv_obj_set_style_local_text_color(labelBat, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_BLACK);
 	lv_label_set_text_fmt(labelBat, "%d %%", 17);
 
 
-	// lv_obj_t * labelOx;
-	labelOx = lv_label_create(lv_scr_act(), NULL);
-	lv_obj_align(labelOx, NULL, LV_ALIGN_IN_LEFT_MID, 10 , 0);
-	lv_obj_set_style_local_text_font(labelOx, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &arial60);
-	lv_obj_set_style_local_text_color(labelOx, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x40CFDF));
-	lv_label_set_text_fmt(labelOx, "0%%");
 
-	lv_obj_t * labelLegendaOx;
-	labelLegendaOx = lv_label_create(lv_scr_act(), NULL);
-	lv_obj_align(labelLegendaOx, NULL, LV_ALIGN_IN_LEFT_MID, 130 , 32);
-	lv_obj_set_style_local_text_font(labelLegendaOx, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &arial20);
-	lv_obj_set_style_local_text_color(labelLegendaOx, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x40CFDF));
-	lv_label_set_text_fmt(labelLegendaOx, "spO2");
+	lv_obj_t * arrowRight = lv_btn_create(head, NULL);
+	lv_obj_set_event_cb(arrowRight, arrowRight_handler);
+	lv_obj_set_width(arrowRight, 40);  lv_obj_set_height(arrowRight, 40);
 
-	// lv_obj_t * labelEcg;
-	labelEcg = lv_label_create(lv_scr_act(), NULL);
-	lv_obj_align(labelEcg, NULL, LV_ALIGN_IN_RIGHT_MID, -100 , 0);
-	lv_obj_set_style_local_text_font(labelEcg, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &arial60);
-	lv_obj_set_style_local_text_color(labelEcg, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0xED0B00));
-	lv_label_set_text_fmt(labelEcg, "0");
+	// alinha no canto esquerdo e desloca um pouco para cima e para direita
+	lv_obj_align(arrowRight, NULL, LV_ALIGN_IN_BOTTOM_RIGHT, -10, 0);
 
-	lv_obj_t * labelLegendaEcg;
-	labelLegendaEcg = lv_label_create(lv_scr_act(), NULL);
-	lv_obj_align(labelLegendaEcg, NULL, LV_ALIGN_IN_RIGHT_MID, -30 , 30);
-	lv_obj_set_style_local_text_font(labelLegendaEcg, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &arial20);
-	lv_obj_set_style_local_text_color(labelLegendaEcg, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0xED0B00));
-	lv_label_set_text_fmt(labelLegendaEcg, "bpm");
+	// altera a cor de fundo, borda do bot?o criado para PRETO
+	lv_obj_set_style_local_bg_color(arrowRight, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_WHITE );
+	lv_obj_set_style_local_border_color(arrowRight, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_WHITE );
+	lv_obj_set_style_local_border_width(arrowRight, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, 0);
 	
-}
+	lv_obj_t * labelRight = lv_label_create(arrowRight, NULL);
+	lv_label_set_recolor(labelRight, true);
+	lv_label_set_text(labelRight, "#00000 " LV_SYMBOL_RIGHT " #");
 
+	//FLECHA PRA ESQUERDA
+
+	lv_obj_t * arrowLeft = lv_btn_create(head, NULL);
+	lv_obj_set_event_cb(arrowLeft, arrowLeft_handler);
+	lv_obj_set_width(arrowLeft, 40);  lv_obj_set_height(arrowLeft, 40);
+
+	// alinha no canto esquerdo e desloca um pouco para cima e para direita
+	lv_obj_align(arrowLeft, NULL, LV_ALIGN_IN_BOTTOM_RIGHT, -55, 0);
+
+	// altera a cor de fundo, borda do bot?o criado para PRETO
+	lv_obj_set_style_local_bg_color(arrowLeft, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_WHITE );
+	lv_obj_set_style_local_border_color(arrowLeft, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_WHITE );
+	lv_obj_set_style_local_border_width(arrowLeft, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, 0);
+	
+	lv_obj_t * labelLeft = lv_label_create(arrowLeft, NULL);
+	lv_label_set_recolor(labelLeft, true);
+	lv_label_set_text(labelLeft, "#00000 " LV_SYMBOL_LEFT " #");
+
+
+}
 
 /************************************************************************/
 /* CALLBACK                                                             */
@@ -523,8 +636,10 @@ static void config_AFEC(Afec *afec, uint32_t afec_id, uint32_t afec_channel, afe
 /************************************************************************/
 
 static void task_lcd(void *pvParameters) {
-	lv_screen_chart();
-	lv_oxi();
+	lv_head();
+	lv_body();
+	lv_page1();
+	
 	for (;;)  {
 		lv_tick_inc(50);
 		lv_task_handler();
@@ -540,7 +655,7 @@ static void task_main(void *pvParameters) {
 	
 	for (;;)  {
 		if(flag_inicia){
-		
+			
 			if ( xQueueReceive( xQueueOx, &ox, 0 )) {
 				lv_label_set_text_fmt(labelOx, "%d%%", ox);
 				if(ox < 90){
@@ -553,7 +668,7 @@ static void task_main(void *pvParameters) {
 				printf("BPM: %d\n", ecg_.bpm);
 				
 				if (ecg_.bpm > 0){
-					lv_label_set_text_fmt(labelEcg, "%d", ecg_.bpm);	
+					lv_label_set_text_fmt(labelEcg, "%d", ecg_.bpm);
 				}
 				else{
 					lv_label_set_text_fmt(labelEcg, "0", ecg_.bpm);
@@ -629,14 +744,14 @@ static void task_process(void *pvParameters) {
 		//f_rtt_alarme = 5;
 		if (xQueueReceive( xQueueECG, &(adc), ( TickType_t )  100 / portTICK_PERIOD_MS)) {
 			/*printf("%d\n", adc.value);*/
-		
+			
 			if (adc.value > 3280  && flag == 0){
 				printf("%d: %d ms\n", adc.value, g_dT);
 				// come�amos a contar novamente
 				double valor = 60000/g_dT;
 				bpm = (int) valor;
 				ecg_.bpm = bpm;
-// 				printf("BPM: %d\n", ecg_.bpm);
+				// 				printf("BPM: %d\n", ecg_.bpm);
 				g_dT = 0;
 				flag = 1;
 			}
@@ -644,7 +759,7 @@ static void task_process(void *pvParameters) {
 				flag = 0;
 			}
 			ecg_.ecg = adc.value;
-			xQueueSend(xQueueEcgInfo, &ecg_, 0);			
+			xQueueSend(xQueueEcgInfo, &ecg_, 0);
 		}
 		
 		
