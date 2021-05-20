@@ -6,6 +6,7 @@
 
 //     Arrumar o bpm de 3 digitos
 //	   Toggle do botao de aviso
+//	   Continuar aparecendo 3 no historico
 
 
 
@@ -106,11 +107,30 @@ static  lv_obj_t * labelMin;
 static lv_obj_t * labelOx;
 static lv_obj_t * labelEcg;
 
+static lv_obj_t * labelHorario;
+static lv_obj_t * labelLegendaOx;
+static lv_obj_t * labelLegendaEcg;
+static lv_obj_t * labelHorario2;
+static lv_obj_t * labelLegendaOx2;
+static lv_obj_t * labelLegendaEcg2;
+static lv_obj_t * labelHorario3;
+static lv_obj_t * labelLegendaOx3;
+static lv_obj_t * labelLegendaEcg3;
+
 LV_FONT_DECLARE(arial60);
 LV_FONT_DECLARE(arial20);
 
 volatile int flag_inicia = 0;
 volatile int pagina = 0;
+volatile int p2_ox = 0;
+volatile int p2_bpm = 0;
+volatile int p2_ox2 = 0;
+volatile int p2_bpm2 = 0;
+volatile int p2_ox3 = 0;
+volatile int p2_bpm3 = 0;
+volatile int atualiza_ox;
+volatile int atualiza_bpm;
+volatile int linha = 0;
 
 
 /************************************************************************/
@@ -137,6 +157,29 @@ static void menu_handler(lv_obj_t * obj, lv_event_t event) {
 	else if(event == LV_EVENT_VALUE_CHANGED) {
 		printf("Toggled\n");
 	}
+}
+
+static void save_handler(lv_obj_t * obj, lv_event_t event) {
+	if(event == LV_EVENT_CLICKED) {
+		printf("Clicked\n");
+		linha++;
+		if(linha > 3){
+			linha = 1;
+		}
+		if(linha == 1) {
+			p2_bpm = atualiza_bpm;
+			p2_ox = atualiza_ox;
+		} else if(linha == 2) {
+			p2_bpm2 = atualiza_bpm;
+			p2_ox2 = atualiza_ox;
+		} else if(linha == 3) {
+			p2_bpm3 = atualiza_bpm;
+			p2_ox3 = atualiza_ox;
+		} 
+	}
+	// else if(event == LV_EVENT_VALUE_CHANGED) {
+	// 	printf("Toggled\n");
+	// }
 }
 
 static void disable_handler(lv_obj_t * obj, lv_event_t event) {
@@ -323,6 +366,7 @@ lv_obj_t * page1;
 lv_obj_t * page2;
 
 
+
 static void event_handler(lv_obj_t * obj, lv_event_t event) {
 	if(event == LV_EVENT_VALUE_CHANGED) {
 		const char * txt = lv_btnmatrix_get_active_btn_text(obj);
@@ -357,12 +401,12 @@ void lv_page1(void) {
 	lv_obj_set_style_local_text_color(labelOx, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x40CFDF));
 	lv_label_set_text_fmt(labelOx, "0%%");
 
-	lv_obj_t * labelLegendaOx;
-	labelLegendaOx = lv_label_create(page1, NULL);
-	lv_obj_align(labelLegendaOx, lv_scr_act(), LV_ALIGN_IN_LEFT_MID, 130 , 32);
-	lv_obj_set_style_local_text_font(labelLegendaOx, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &arial20);
-	lv_obj_set_style_local_text_color(labelLegendaOx, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x40CFDF));
-	lv_label_set_text_fmt(labelLegendaOx, "spO2");
+	lv_obj_t * labelLegOx;
+	labelLegOx = lv_label_create(page1, NULL);
+	lv_obj_align(labelLegOx, lv_scr_act(), LV_ALIGN_IN_LEFT_MID, 130 , 32);
+	lv_obj_set_style_local_text_font(labelLegOx, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &arial20);
+	lv_obj_set_style_local_text_color(labelLegOx, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x40CFDF));
+	lv_label_set_text_fmt(labelLegOx, "spO2");
 
 	// lv_obj_t * labelEcg;
 	labelEcg = lv_label_create(page1, NULL);
@@ -371,12 +415,12 @@ void lv_page1(void) {
 	lv_obj_set_style_local_text_color(labelEcg, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0xED0B00));
 	lv_label_set_text_fmt(labelEcg, "0");
 
-	lv_obj_t * labelLegendaEcg;
-	labelLegendaEcg = lv_label_create(page1, NULL);
-	lv_obj_align(labelLegendaEcg, lv_scr_act(), LV_ALIGN_IN_RIGHT_MID, -30 , 30);
-	lv_obj_set_style_local_text_font(labelLegendaEcg, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &arial20);
-	lv_obj_set_style_local_text_color(labelLegendaEcg, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0xED0B00));
-	lv_label_set_text_fmt(labelLegendaEcg, "bpm");
+	lv_obj_t * labelLegEcg;
+	labelLegEcg = lv_label_create(page1, NULL);
+	lv_obj_align(labelLegEcg, lv_scr_act(), LV_ALIGN_IN_RIGHT_MID, -30 , 30);
+	lv_obj_set_style_local_text_font(labelLegEcg, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &arial20);
+	lv_obj_set_style_local_text_color(labelLegEcg, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0xED0B00));
+	lv_label_set_text_fmt(labelLegEcg, "bpm");
 	
 	// chart
 	chart = lv_chart_create(page1, NULL);
@@ -416,7 +460,7 @@ void lv_page1(void) {
 
 	// cria botao de tamanho 60x60 redondo do MENU
 	lv_obj_t * btnSave = lv_btn_create(page1, NULL);
-	lv_obj_set_event_cb(btnSave, menu_handler);
+	lv_obj_set_event_cb(btnSave, save_handler);
 	lv_obj_set_width(btnSave, 100);  lv_obj_set_height(btnSave, 33);
 
 	// // alinha no canto esquerdo e desloca um pouco para cima e para direita
@@ -436,15 +480,120 @@ void lv_page1(void) {
 	// lv_obj_set_style_local_text_color(labelFloor, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_WHITE);
 }
 
-void lv_page2(void) {
+void cria_linha(int y){
+
+	labelHorario = lv_label_create(page2, NULL);
+	lv_obj_align(labelHorario, lv_scr_act(), LV_ALIGN_CENTER, -60 , y);
+	lv_obj_set_style_local_text_font(labelHorario, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &arial20);
+	// lv_obj_set_style_local_text_color(labelHorario, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x40CFDF));
+	lv_label_set_text_fmt(labelHorario, "02:30");
+
 	
+	labelLegendaOx = lv_label_create(page2, NULL);
+	lv_obj_align(labelLegendaOx, lv_scr_act(), LV_ALIGN_CENTER, 0 , y);
+	lv_obj_set_style_local_text_font(labelLegendaOx, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &arial20);
+	lv_obj_set_style_local_text_color(labelLegendaOx, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x40CFDF));
+	lv_label_set_text_fmt(labelLegendaOx, "%02d", p2_ox);
+
+	
+	labelLegendaEcg = lv_label_create(page2, NULL);
+	lv_obj_align(labelLegendaEcg, lv_scr_act(), LV_ALIGN_CENTER, 60 , y);
+	lv_obj_set_style_local_text_font(labelLegendaEcg, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &arial20);
+	lv_obj_set_style_local_text_color(labelLegendaEcg, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0xED0B00));
+	lv_label_set_text_fmt(labelLegendaEcg, "%02d", p2_bpm);
+}
+
+void cria_linha2(int y){
+
+	labelHorario2 = lv_label_create(page2, NULL);
+	lv_obj_align(labelHorario2, lv_scr_act(), LV_ALIGN_CENTER, -60 , 45);
+	lv_obj_set_style_local_text_font(labelHorario2, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &arial20);
+	// lv_obj_set_style_local_text_color(labelHorario2, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x40CFDF));
+	lv_label_set_text_fmt(labelHorario2, "16:22");
+
+	
+	labelLegendaOx2 = lv_label_create(page2, NULL);
+	lv_obj_align(labelLegendaOx2, lv_scr_act(), LV_ALIGN_CENTER, 0 , 45);
+	lv_obj_set_style_local_text_font(labelLegendaOx2, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &arial20);
+	lv_obj_set_style_local_text_color(labelLegendaOx2, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x40CFDF));
+	lv_label_set_text_fmt(labelLegendaOx2, "%02d", p2_ox2);
+
+	
+	labelLegendaEcg2 = lv_label_create(page2, NULL);
+	lv_obj_align(labelLegendaEcg2, lv_scr_act(), LV_ALIGN_CENTER, 60 , 45);
+	lv_obj_set_style_local_text_font(labelLegendaEcg2, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &arial20);
+	lv_obj_set_style_local_text_color(labelLegendaEcg2, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0xED0B00));
+	lv_label_set_text_fmt(labelLegendaEcg2, "%02d", p2_bpm2);
+}
+void cria_linha3(int y){
+
+	labelHorario3 = lv_label_create(page2, NULL);
+	lv_obj_align(labelHorario3, lv_scr_act(), LV_ALIGN_CENTER, -60 , 70);
+	lv_obj_set_style_local_text_font(labelHorario3, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &arial20);
+	// lv_obj_set_style_local_text_color(labelHorario3, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x40CFDF));
+	lv_label_set_text_fmt(labelHorario3, "17:40");
+
+	
+	labelLegendaOx3 = lv_label_create(page2, NULL);
+	lv_obj_align(labelLegendaOx3, lv_scr_act(), LV_ALIGN_CENTER, 0 , 70);
+	lv_obj_set_style_local_text_font(labelLegendaOx3, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &arial20);
+	lv_obj_set_style_local_text_color(labelLegendaOx3, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x40CFDF));
+	lv_label_set_text_fmt(labelLegendaOx3, "%02d", p2_ox3);
+
+	
+	labelLegendaEcg3 = lv_label_create(page2, NULL);
+	lv_obj_align(labelLegendaEcg3, lv_scr_act(), LV_ALIGN_CENTER, 60 , 70);
+	lv_obj_set_style_local_text_font(labelLegendaEcg3, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &arial20);
+	lv_obj_set_style_local_text_color(labelLegendaEcg3, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0xED0B00));
+	lv_label_set_text_fmt(labelLegendaEcg3, "%02d", p2_bpm3);
+}
+
+void lv_page2(void) {
 	page2 = lv_page_create(body, NULL);
 	lv_obj_set_width(page2, 320);  lv_obj_set_height(page2, 190);
 
-	lv_obj_t * label;
+	lv_obj_t * labelTitleHorario;
+	labelTitleHorario = lv_label_create(page2, NULL);
+	lv_obj_align(labelTitleHorario, lv_scr_act(), LV_ALIGN_CENTER, -60 , -10);
+	lv_obj_set_style_local_text_font(labelTitleHorario, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &arial20);
+	// lv_obj_set_style_local_text_color(labelTitleHorario, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x40CFDF));
+	lv_label_set_text_fmt(labelTitleHorario, "Time");
 
-	label = lv_label_create(page2, NULL);
-	lv_label_set_text(label, "PAGINA 2");
+	lv_obj_t * labelTitleOx;
+	labelTitleOx = lv_label_create(page2, NULL);
+	lv_obj_align(labelTitleOx, lv_scr_act(), LV_ALIGN_CENTER, 0 , -10);
+	lv_obj_set_style_local_text_font(labelTitleOx, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &arial20);
+	lv_obj_set_style_local_text_color(labelTitleOx, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x40CFDF));
+	lv_label_set_text_fmt(labelTitleOx, "SpO2");
+
+	lv_obj_t * labelTitleEcg;
+	labelTitleEcg = lv_label_create(page2, NULL);
+	lv_obj_align(labelTitleEcg, lv_scr_act(), LV_ALIGN_CENTER, 60 , -10);
+	lv_obj_set_style_local_text_font(labelTitleEcg, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &arial20);
+	lv_obj_set_style_local_text_color(labelTitleEcg, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0xED0B00));
+	lv_label_set_text_fmt(labelTitleEcg, "bpm");
+
+
+	if(linha == 1){
+		cria_linha(20);
+	}
+	
+	if(linha == 2){
+		cria_linha(20);
+		cria_linha2(45);
+	}
+	
+	if(linha == 3){
+		cria_linha(20);
+		cria_linha2(45);
+		cria_linha3(70);
+	}
+
+
+	
+
+
+	
 }
 
 void lv_body(void) {
@@ -485,6 +634,9 @@ static void arrowRight_handler(lv_obj_t * obj, lv_event_t event) {
 	}
 }
 
+/************************************************************************/
+/*                                                                      */
+/************************************************************************/
 
 void lv_head(void) {
 	head = lv_cont_create(lv_scr_act(), NULL);
@@ -661,6 +813,7 @@ static void task_main(void *pvParameters) {
 				if(ox < 90){
 					lv_img_set_src(img2, &aviso);
 				}
+				atualiza_ox = ox;
 			}
 
 			if (xQueueReceive( xQueueEcgInfo, &(ecg_), ( TickType_t )  500 / portTICK_PERIOD_MS)) {
@@ -674,6 +827,8 @@ static void task_main(void *pvParameters) {
 					lv_label_set_text_fmt(labelEcg, "0", ecg_.bpm);
 				}
 				
+				atualiza_bpm = ecg_.bpm;
+
 				lv_chart_set_next(chart, ser1, ecg_.ecg);
 				lv_obj_set_style_local_size(chart, LV_CHART_PART_SERIES, LV_STATE_DEFAULT, LV_DPI/150);
 				lv_chart_refresh(chart);
