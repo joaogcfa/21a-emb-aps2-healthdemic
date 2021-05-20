@@ -2,6 +2,8 @@
 # Automatically-generated file. Do not edit or delete the file
 ################################################################################
 
+src\white.c
+
 src\aps2\aps2.c
 
 src\arial20.c

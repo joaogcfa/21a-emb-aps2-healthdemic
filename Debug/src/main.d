@@ -370,7 +370,7 @@ src/main.d src/main.o: ../src/main.c ../src/asf.h \
  ../src/ASF/thirdparty/lvgl/src/lv_api_map.h \
  ../src/ASF/thirdparty/lvgl/src/../lvgl.h ../src/touch/touch.h \
  ../src/aps2/aps2.h ../src/aps2/ecg.h ../src/logo.h ../src/health.h \
- ../src/aviso.h
+ ../src/aviso.h ../src/white.h
 
 ../src/asf.h:
 
@@ -1147,3 +1147,5 @@ c:\21a-emb-aps2-healthdemic\src\asf\thirdparty\lvgl\src\lv_font\lv_font.h:
 ../src/health.h:
 
 ../src/aviso.h:
+
+../src/white.h:

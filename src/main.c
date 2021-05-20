@@ -29,6 +29,7 @@
 #include "logo.h"
 #include "health.h"
 #include "aviso.h"
+#include "white.h"
 
 /************************************************************************/
 /* STATIC                                                               */
@@ -42,6 +43,7 @@ static lv_color_t buf_1[LV_HOR_RES_MAX * LV_VER_RES_MAX];
 
 static  lv_obj_t * labelMenu;
 static  lv_obj_t * labelPower;
+lv_obj_t * img2;
 
 /************************************************************************/
 /* RTOS                                                                 */
@@ -138,6 +140,16 @@ static void menu_handler(lv_obj_t * obj, lv_event_t event) {
 	else if(event == LV_EVENT_VALUE_CHANGED) {
 		printf("Toggled\n");
 	}
+}
+
+static void disable_handler(lv_obj_t * obj, lv_event_t event) {
+	if(event == LV_EVENT_CLICKED) {
+		printf("Clicked\n");
+		lv_img_set_src(img2, &white);
+	}
+// 	else if(event == LV_EVENT_VALUE_CHANGED) {
+// 		printf("Toggled\n");
+// 	}
 }
 
 static void power_handler(lv_obj_t * obj, lv_event_t event) {
@@ -342,6 +354,21 @@ lv_oxi(void) {
 	lv_obj_align(img1, NULL, LV_ALIGN_IN_TOP_LEFT, 5, 30);
 	
 	
+
+	lv_obj_t * btnDis = lv_btn_create(lv_scr_act(), NULL);
+	lv_obj_set_event_cb(btnDis, disable_handler);
+	lv_obj_set_width(btnDis, 50);  lv_obj_set_height(btnDis, 50);
+
+	lv_obj_align(btnDis, NULL, LV_ALIGN_IN_LEFT_MID, 130, -10);
+
+	// altera a cor de fundo, borda do bot?o criado para branco para esconder
+	//lv_obj_set_style_local_bg_color(btnDis, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT,  LV_COLOR_WHITE);
+	lv_obj_set_style_local_border_color(btnDis, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_BLACK);
+	lv_obj_set_style_local_border_width(btnDis, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, 0);
+	
+	img2 = lv_img_create(lv_scr_act(), NULL);
+	lv_obj_align(img2, NULL, LV_ALIGN_IN_LEFT_MID, 130, -10);
+	lv_img_set_src(img2, &white);
 	
 	lv_obj_t * health_txt = lv_img_create(lv_scr_act(), NULL);
 	lv_img_set_src(health_txt, &health);
@@ -510,15 +537,14 @@ static void task_main(void *pvParameters) {
 	int flag = 0;
 	int flag2 = 0;
 	char ox;
+	
 	for (;;)  {
 		if(flag_inicia){
 		
 			if ( xQueueReceive( xQueueOx, &ox, 0 )) {
 				lv_label_set_text_fmt(labelOx, "%d%%", ox);
 				if(ox < 90){
-					lv_obj_t * img2 = lv_img_create(lv_scr_act(), NULL);
 					lv_img_set_src(img2, &aviso);
-					lv_obj_align(img2, NULL, LV_ALIGN_IN_LEFT_MID, 130, -10);
 				}
 			}
 

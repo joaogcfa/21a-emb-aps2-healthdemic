@@ -811,6 +811,12 @@
     <Folder Include="src\touch\" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="src\white.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\white.h">
+      <SubType>compile</SubType>
+    </Compile>
     <None Include="src\ASF\sam\drivers\tc\tc.h">
       <SubType>compile</SubType>
     </None>
