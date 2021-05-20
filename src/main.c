@@ -130,6 +130,16 @@ volatile int p2_ox3 = 0;
 volatile int p2_bpm3 = 0;
 volatile int atualiza_ox;
 volatile int atualiza_bpm;
+
+volatile int p2_hor = 0;
+volatile int p2_min = 0;
+volatile int p2_hor2 = 0;
+volatile int p2_min2 = 0;
+volatile int p2_hor3 = 0;
+volatile int p2_min3 = 0;
+volatile int atualiza_hora;
+volatile int atualiza_min;
+
 volatile int linha = 0;
 
 
@@ -169,12 +179,18 @@ static void save_handler(lv_obj_t * obj, lv_event_t event) {
 		if(linha == 1) {
 			p2_bpm = atualiza_bpm;
 			p2_ox = atualiza_ox;
+			p2_hor = atualiza_hora;
+			p2_min = atualiza_min;
 		} else if(linha == 2) {
 			p2_bpm2 = atualiza_bpm;
 			p2_ox2 = atualiza_ox;
+			p2_hor2 = atualiza_hora;
+			p2_min2 = atualiza_min;
 		} else if(linha == 3) {
 			p2_bpm3 = atualiza_bpm;
 			p2_ox3 = atualiza_ox;
+			p2_hor3 = atualiza_hora;
+			p2_min3 = atualiza_min;
 		} 
 	}
 	// else if(event == LV_EVENT_VALUE_CHANGED) {
@@ -480,73 +496,29 @@ void lv_page1(void) {
 	// lv_obj_set_style_local_text_color(labelFloor, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_WHITE);
 }
 
-void cria_linha(int y){
+void cria_linha(int y, int p2_bpm1, int p2_ox1, int p2_hor1, int p2_min1){
 
 	labelHorario = lv_label_create(page2, NULL);
-	lv_obj_align(labelHorario, lv_scr_act(), LV_ALIGN_CENTER, -60 , y);
+	lv_obj_align(labelHorario, lv_scr_act(), LV_ALIGN_CENTER, -65 , y);
 	lv_obj_set_style_local_text_font(labelHorario, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &arial20);
 	// lv_obj_set_style_local_text_color(labelHorario, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x40CFDF));
-	lv_label_set_text_fmt(labelHorario, "02:30");
+	lv_label_set_text_fmt(labelHorario, "%02d:%02d", p2_hor1, p2_min1);
 
 	
 	labelLegendaOx = lv_label_create(page2, NULL);
 	lv_obj_align(labelLegendaOx, lv_scr_act(), LV_ALIGN_CENTER, 0 , y);
 	lv_obj_set_style_local_text_font(labelLegendaOx, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &arial20);
 	lv_obj_set_style_local_text_color(labelLegendaOx, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x40CFDF));
-	lv_label_set_text_fmt(labelLegendaOx, "%02d", p2_ox);
+	lv_label_set_text_fmt(labelLegendaOx, "%02d", p2_ox1);
 
 	
 	labelLegendaEcg = lv_label_create(page2, NULL);
 	lv_obj_align(labelLegendaEcg, lv_scr_act(), LV_ALIGN_CENTER, 60 , y);
 	lv_obj_set_style_local_text_font(labelLegendaEcg, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &arial20);
 	lv_obj_set_style_local_text_color(labelLegendaEcg, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0xED0B00));
-	lv_label_set_text_fmt(labelLegendaEcg, "%02d", p2_bpm);
+	lv_label_set_text_fmt(labelLegendaEcg, "%02d", p2_bpm1);
 }
 
-void cria_linha2(int y){
-
-	labelHorario2 = lv_label_create(page2, NULL);
-	lv_obj_align(labelHorario2, lv_scr_act(), LV_ALIGN_CENTER, -60 , 45);
-	lv_obj_set_style_local_text_font(labelHorario2, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &arial20);
-	// lv_obj_set_style_local_text_color(labelHorario2, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x40CFDF));
-	lv_label_set_text_fmt(labelHorario2, "16:22");
-
-	
-	labelLegendaOx2 = lv_label_create(page2, NULL);
-	lv_obj_align(labelLegendaOx2, lv_scr_act(), LV_ALIGN_CENTER, 0 , 45);
-	lv_obj_set_style_local_text_font(labelLegendaOx2, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &arial20);
-	lv_obj_set_style_local_text_color(labelLegendaOx2, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x40CFDF));
-	lv_label_set_text_fmt(labelLegendaOx2, "%02d", p2_ox2);
-
-	
-	labelLegendaEcg2 = lv_label_create(page2, NULL);
-	lv_obj_align(labelLegendaEcg2, lv_scr_act(), LV_ALIGN_CENTER, 60 , 45);
-	lv_obj_set_style_local_text_font(labelLegendaEcg2, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &arial20);
-	lv_obj_set_style_local_text_color(labelLegendaEcg2, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0xED0B00));
-	lv_label_set_text_fmt(labelLegendaEcg2, "%02d", p2_bpm2);
-}
-void cria_linha3(int y){
-
-	labelHorario3 = lv_label_create(page2, NULL);
-	lv_obj_align(labelHorario3, lv_scr_act(), LV_ALIGN_CENTER, -60 , 70);
-	lv_obj_set_style_local_text_font(labelHorario3, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &arial20);
-	// lv_obj_set_style_local_text_color(labelHorario3, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x40CFDF));
-	lv_label_set_text_fmt(labelHorario3, "17:40");
-
-	
-	labelLegendaOx3 = lv_label_create(page2, NULL);
-	lv_obj_align(labelLegendaOx3, lv_scr_act(), LV_ALIGN_CENTER, 0 , 70);
-	lv_obj_set_style_local_text_font(labelLegendaOx3, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &arial20);
-	lv_obj_set_style_local_text_color(labelLegendaOx3, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x40CFDF));
-	lv_label_set_text_fmt(labelLegendaOx3, "%02d", p2_ox3);
-
-	
-	labelLegendaEcg3 = lv_label_create(page2, NULL);
-	lv_obj_align(labelLegendaEcg3, lv_scr_act(), LV_ALIGN_CENTER, 60 , 70);
-	lv_obj_set_style_local_text_font(labelLegendaEcg3, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &arial20);
-	lv_obj_set_style_local_text_color(labelLegendaEcg3, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0xED0B00));
-	lv_label_set_text_fmt(labelLegendaEcg3, "%02d", p2_bpm3);
-}
 
 void lv_page2(void) {
 	page2 = lv_page_create(body, NULL);
@@ -575,25 +547,20 @@ void lv_page2(void) {
 
 
 	if(linha == 1){
-		cria_linha(20);
+		cria_linha(20, p2_bpm, p2_ox, p2_hor, p2_min);
 	}
 	
 	if(linha == 2){
-		cria_linha(20);
-		cria_linha2(45);
+		cria_linha(20, p2_bpm, p2_ox, p2_hor, p2_min);
+		cria_linha(45, p2_bpm2, p2_ox2, p2_hor2, p2_min2);
 	}
 	
 	if(linha == 3){
-		cria_linha(20);
-		cria_linha2(45);
-		cria_linha3(70);
+		cria_linha(20, p2_bpm, p2_ox, p2_hor, p2_min);
+		cria_linha(45, p2_bpm2, p2_ox2, p2_hor2, p2_min2);
+		cria_linha(70, p2_bpm3, p2_ox3, p2_hor3, p2_min3);
 	}
 
-
-	
-
-
-	
 }
 
 void lv_body(void) {
@@ -805,6 +772,10 @@ static void task_main(void *pvParameters) {
 	int flag2 = 0;
 	char ox;
 	
+	uint32_t hour;
+	uint32_t minute;
+	uint32_t second;
+	
 	for (;;)  {
 		if(flag_inicia){
 			
@@ -814,6 +785,10 @@ static void task_main(void *pvParameters) {
 					lv_img_set_src(img2, &aviso);
 				}
 				atualiza_ox = ox;
+				rtc_get_time(RTC, &hour, &minute, &second);
+				atualiza_hora = hour;
+				atualiza_min = minute;
+
 			}
 
 			if (xQueueReceive( xQueueEcgInfo, &(ecg_), ( TickType_t )  500 / portTICK_PERIOD_MS)) {
