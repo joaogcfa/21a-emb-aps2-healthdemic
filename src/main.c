@@ -116,6 +116,8 @@ static lv_obj_t * labelLegendaEcg2;
 static lv_obj_t * labelHorario3;
 static lv_obj_t * labelLegendaOx3;
 static lv_obj_t * labelLegendaEcg3;
+static lv_obj_t * labelAdjustClock;
+static lv_obj_t * btnAdjustClock;
 
 LV_FONT_DECLARE(arial60);
 LV_FONT_DECLARE(arial20);
@@ -141,6 +143,11 @@ volatile int atualiza_hora;
 volatile int atualiza_min;
 
 volatile int linha = 0;
+
+
+volatile char AdjustClock = 0;
+volatile char Adjusted = 0;
+volatile int HourAdjusted;
 
 
 /************************************************************************/
@@ -210,6 +217,52 @@ static void disable_handler(lv_obj_t * obj, lv_event_t event) {
 
 static void power_handler(lv_obj_t * obj, lv_event_t event) {
 	if(event == LV_EVENT_CLICKED) {
+		printf("Clicked\n");
+	}
+	else if(event == LV_EVENT_VALUE_CHANGED) {
+		printf("Toggled\n");
+	}
+}
+
+static void clk_handler(lv_obj_t * obj, lv_event_t event) {
+	if(event == LV_EVENT_CLICKED) {
+		AdjustClock = !AdjustClock;
+		Adjusted++;
+		if(AdjustClock) {
+			lv_obj_set_style_local_bg_color(btnAdjustClock, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_RED );	
+		} else {
+			lv_obj_set_style_local_bg_color(btnAdjustClock, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x40CFDF) );
+		}
+		printf("Clicked\n");
+	}
+	else if(event == LV_EVENT_VALUE_CHANGED) {
+		printf("Toggled\n");
+	}
+}
+
+static void up_handler(lv_obj_t * obj, lv_event_t event) {
+	char * c;
+	int temp;
+	if(event == LV_EVENT_CLICKED) {
+		c = lv_label_get_text(labelHour);
+		temp = atoi(c);
+		HourAdjusted = temp + 1;
+		lv_label_set_text_fmt(labelHour, "%02d", HourAdjusted);
+		printf("Clicked\n");
+	}
+	else if(event == LV_EVENT_VALUE_CHANGED) {
+		printf("Toggled\n");
+	}
+}
+
+static void down_handler(lv_obj_t * obj, lv_event_t event) {
+	char * c;
+	int temp;
+	if(event == LV_EVENT_CLICKED) {
+		c = lv_label_get_text(labelHour);
+		temp = atoi(c);
+		HourAdjusted = temp - 1;
+		lv_label_set_text_fmt(labelHour, "%02d", HourAdjusted);
 		printf("Clicked\n");
 	}
 	else if(event == LV_EVENT_VALUE_CHANGED) {
@@ -380,6 +433,7 @@ lv_obj_t * head;
 lv_obj_t * body;
 lv_obj_t * page1;
 lv_obj_t * page2;
+lv_obj_t * page3;
 
 
 
@@ -389,7 +443,6 @@ static void event_handler(lv_obj_t * obj, lv_event_t event) {
 		printf("%s was pressed\n", txt);
 	}
 }
-
 
 void lv_page1(void) {
 	
@@ -519,7 +572,6 @@ void cria_linha(int y, int p2_bpm1, int p2_ox1, int p2_hor1, int p2_min1){
 	lv_label_set_text_fmt(labelLegendaEcg, "%02d", p2_bpm1);
 }
 
-
 void lv_page2(void) {
 	page2 = lv_page_create(body, NULL);
 	lv_obj_set_width(page2, 320);  lv_obj_set_height(page2, 190);
@@ -563,6 +615,64 @@ void lv_page2(void) {
 
 }
 
+void lv_page3(void) {
+	page3 = lv_page_create(body, NULL);
+	lv_obj_set_width(page3, 320);  lv_obj_set_height(page3, 190);
+	
+	// cria botao de tamanho 60x60 redondo do MENU
+	btnAdjustClock = lv_btn_create(page3, NULL);
+	lv_obj_set_event_cb(btnAdjustClock, clk_handler);
+	lv_obj_set_width(btnAdjustClock, 130);  lv_obj_set_height(btnAdjustClock, 33);
+
+	// alinha no canto esquerdo e desloca um pouco para cima e para direita
+	lv_obj_align(btnAdjustClock, lv_scr_act(), LV_ALIGN_CENTER, 0, -10);
+	
+	// altera a cor de fundo, borda do bot?o criado para PRETO
+	lv_obj_set_style_local_bg_color(btnAdjustClock, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x40CFDF) );
+	lv_obj_set_style_local_border_color(btnAdjustClock, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x40CFDF) );
+	lv_obj_set_style_local_border_width(btnAdjustClock, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, 2);
+	
+	labelAdjustClock = lv_label_create(btnAdjustClock, NULL);
+	lv_label_set_recolor(labelAdjustClock, true);
+	lv_label_set_text(labelAdjustClock, "#FFFFFF   Ajustar relogio  #");
+	
+	// cria botao de tamanho 60x60 redondo do UP
+	lv_obj_t * btnUp = lv_btn_create(page3, NULL);
+	lv_obj_set_event_cb(btnUp, up_handler);
+	lv_obj_set_width(btnUp, 60);  lv_obj_set_height(btnUp, 60);
+
+	// alinha no canto esquerdo e desloca um pouco para cima e para direita
+	lv_obj_align(btnUp, lv_scr_act(), LV_ALIGN_CENTER, -60, 60);
+
+	// altera a cor de fundo, borda do botão criado para PRETO
+	lv_obj_set_style_local_bg_color(btnUp, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_RED );
+	//lv_obj_set_style_local_border_color(btnUp, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_BLACK );
+	lv_obj_set_style_local_border_width(btnUp, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, 0);
+	
+	lv_obj_t *labelUp = lv_label_create(btnUp, NULL);
+	lv_label_set_recolor(labelUp, true);
+	lv_label_set_text(labelUp, "#ffffff  " LV_SYMBOL_UP " #");
+	
+	// cria botao de tamanho 60x60 redondo do UP
+	lv_obj_t * btnDown = lv_btn_create(page3, NULL);
+	lv_obj_set_event_cb(btnDown, down_handler);
+	lv_obj_set_width(btnDown, 60);  lv_obj_set_height(btnDown, 60);
+
+	// alinha no canto esquerdo e desloca um pouco para cima e para direita
+	lv_obj_align(btnDown, lv_scr_act(), LV_ALIGN_CENTER, 60, 60);
+
+	// altera a cor de fundo, borda do botão criado para DOWN
+	lv_obj_set_style_local_bg_color(btnDown, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_RED );
+	//lv_obj_set_style_local_border_color(btnDown, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_BLACK );
+	lv_obj_set_style_local_border_width(btnDown, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, 0);
+	
+	lv_obj_t *labelDown = lv_label_create(btnDown, NULL);
+	lv_label_set_recolor(labelDown, true);
+	lv_label_set_text(labelDown, "#ffffff " LV_SYMBOL_DOWN " #");
+	
+}
+
+
 void lv_body(void) {
 	body =  lv_cont_create(lv_scr_act(), NULL);
 	lv_obj_align(body, head, LV_ALIGN_OUT_BOTTOM_LEFT, 0, 0);
@@ -581,6 +691,12 @@ static void arrowLeft_handler(lv_obj_t * obj, lv_event_t event) {
 		if(pagina == 1) {
 			lv_page1();
 			pagina--;
+		} else if(pagina == 2) {
+			lv_page2();
+			pagina--;
+		} else if(pagina >= 3) {
+			lv_page3();
+			pagina--;
 		}
 	}
 	else if(event == LV_EVENT_VALUE_CHANGED) {
@@ -593,6 +709,9 @@ static void arrowRight_handler(lv_obj_t * obj, lv_event_t event) {
 		printf("Clicked\n");
 		if(pagina == 0) {
 			lv_page2();
+			pagina++;
+		} else if(pagina == 1) {
+			lv_page3();
 			pagina++;
 		}
 	}
@@ -777,6 +896,7 @@ static void task_main(void *pvParameters) {
 	uint32_t second;
 	
 	for (;;)  {
+		
 		if(flag_inicia){
 			
 			if ( xQueueReceive( xQueueOx, &ox, 0 )) {
@@ -840,16 +960,26 @@ static void task_clock(void *pvParameters) {
 	while(1){
 		
 		if( xSemaphoreTake(xSemaphore, ( TickType_t ) 10 / portTICK_PERIOD_MS) == pdTRUE ){
-			rtc_get_time(RTC, &hour, &minute, &second);
-			if(flag_pisca == 0){
-				lv_label_set_text_fmt(labelHour, "%02d:", hour);
-				lv_label_set_text_fmt(labelMin, "%02d", minute);
-				flag_pisca = 1;
-			}
-			else if(flag_pisca == 1){
-				lv_label_set_text_fmt(labelHour, "%02d", hour);
-				lv_label_set_text_fmt(labelMin, "%02d", minute);
-				flag_pisca = 0;
+			if(!AdjustClock) {
+				rtc_get_time(RTC, &hour, &minute, &second);
+				if(!Adjusted) {
+					if(flag_pisca == 0){
+						lv_label_set_text_fmt(labelHour, "%02d:", hour);
+						lv_label_set_text_fmt(labelMin, "%02d", minute);
+						flag_pisca = 1;
+					}
+					else if(flag_pisca == 1){
+						lv_label_set_text_fmt(labelHour, "%02d", hour);
+						lv_label_set_text_fmt(labelMin, "%02d", minute);
+						flag_pisca = 0;
+					}	
+				} else {
+					Adjusted = !Adjusted;
+					calendar rtc_initial =  {2021, 5, 7, 18, HourAdjusted, minute, second};
+					RTC_init(RTC, ID_RTC, rtc_initial, RTC_IER_SECEN);
+					rtc_get_time(RTC, &hour, &minute, &second);
+					HourAdjusted = hour;
+				}
 			}
 		}
 	}
