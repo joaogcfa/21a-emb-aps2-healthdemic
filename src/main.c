@@ -1,15 +1,3 @@
-// 	   Valor salvo de oxigenação/batimento
-
-// O usuário deve ser capaz de:
-
-//     Salvar o valor em um instante de oxigenação e batimento
-
-//     Arrumar o bpm de 3 digitos
-//	   Toggle do botao de aviso
-//	   Continuar aparecendo 3 no historico
-
-
-
 
 /************************************************************************/
 /* includes                                                             */
@@ -154,9 +142,6 @@ volatile char MudaHora = 0;
 volatile int HourAdjusted;
 volatile int MinAdjusted;
 
-
-
-
 volatile int val_max = 90;
 
 
@@ -210,9 +195,7 @@ static void save_handler(lv_obj_t * obj, lv_event_t event) {
 			p2_min3 = atualiza_min;
 		} 
 	}
-	// else if(event == LV_EVENT_VALUE_CHANGED) {
-	// 	printf("Toggled\n");
-	// }
+
 }
 
 static void disable_handler(lv_obj_t * obj, lv_event_t event) {
@@ -220,9 +203,6 @@ static void disable_handler(lv_obj_t * obj, lv_event_t event) {
 		printf("Clicked\n");
 		lv_img_set_src(img2, &white);
 	}
-	// 	else if(event == LV_EVENT_VALUE_CHANGED) {
-	// 		printf("Toggled\n");
-	// 	}
 }
 
 static void power_handler(lv_obj_t * obj, lv_event_t event) {
